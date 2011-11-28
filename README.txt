@@ -1,1 +1,1 @@
-Projekt zatím není dokonèen.
+Projekt zatÃ­m nenÃ­ dokonÄen.
