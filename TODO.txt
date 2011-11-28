@@ -1,0 +1,5 @@
+- upravit include aby globální proměnné byly vidět i ve vnějším souboru
+- předělat používání třídy Block
+- dokončit font-face
+- použít vylepšené & místo >>?
+- jak kešovat závislosti
