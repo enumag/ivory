@@ -477,7 +477,10 @@ class Compiler {
      */
     protected function getConditionStatus(Rule $block) {
         $last = NULL;
-        foreach ($block->parent->properties as $item) {
+        $actual = $this->stack->pop();
+        $parent = $this->stack->top();
+        $this->stack->push($actual);
+        foreach ($parent->properties as $item) {
             if ($item instanceof Rule) {
                 if ($item == $block) {
                     break;
