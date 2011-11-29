@@ -125,7 +125,7 @@ class Parser {
      * Parsování řetězce (obvykle obsah souboru)
      *
      * @param string
-     * @return Rule
+     * @return NestedRule
      */
     public function parse($input) {
         $this->buffer = $this->removeComments($input);
@@ -339,7 +339,7 @@ class Parser {
      */
     protected function inCondition() {
         $filter = function ($item) {
-                return $item instanceof Rule;
+                return $item instanceof NestedRule;
             };
         $blocks = array_filter($this->getActualBlock()->properties, $filter);
         $last = end($blocks);
@@ -464,9 +464,9 @@ class Parser {
      *
      * @return bool
      */
-    protected function RuleBegin() {
+    protected function ruleBegin() {
         if ($this->extendedSelectors($statement, $prefixes, $selectors) && $this->char('{')) {
-            $block = new Rule($selectors, $prefixes, $statement);
+            $block = new NestedRule($selectors, $prefixes, $statement);
             $this->getActualBlock()->properties[] = $block;
             $this->stack->push($block);
             return TRUE;
@@ -493,7 +493,7 @@ class Parser {
      * @return bool
      */
     protected function ruleEnd() {
-        if ($this->getActualBlock() instanceof Rule && $this->char('}')) {
+        if ($this->getActualBlock() instanceof NestedRule && $this->char('}')) {
             $this->stack->pop();
             return TRUE;
         }
