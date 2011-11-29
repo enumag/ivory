@@ -8,9 +8,6 @@
 
 namespace Ivory\StyleSheets;
 
-use Ivory\StyleSheets\Compiler;
-use Ivory\StyleSheets\ParseException;
-
 /**
  * Parser IvoryStyleSheets
  *

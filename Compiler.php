@@ -8,11 +8,6 @@
 
 namespace Ivory\StyleSheets;
 
-use Ivory\StyleSheets\Block;
-use Ivory\StyleSheets\Mixin;
-use Ivory\StyleSheets\Parser;
-use Ivory\StyleSheets\CompileException;
-
 /**
  * Parser IvoryStyleSheets
  *
