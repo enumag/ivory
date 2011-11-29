@@ -570,6 +570,9 @@ class Parser {
                 $this->char('@font-face') &&
                 $this->char('{')) {
             throw new \Exception();
+            //font-face by mohlo být i v podmínce / cyklu pokud tam není selektor
+            //- hodilo by se třeba definovat pole fontů a pak to pustit
+            //speciální bloky mohou mít statement!!
             //new FontFace
             //$this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'font-face');
             return TRUE;
