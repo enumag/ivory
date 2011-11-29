@@ -14,14 +14,14 @@ namespace Ivory\StyleSheets;
  * @author Jáchym Toušek
  */
 class Parser {
-    
+
     /**
      * Regulární výraz pro řetězec
      *
      * @const string
      */
     const RE_STRING = '(?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")';
-    
+
     /**
      * Na co lze při parsování narazit (seřazeno dle priority)
      *
@@ -42,7 +42,7 @@ class Parser {
             'ruleEnd',
             'mixinEnd',
     );
-    
+
     /**
      * Buffer
      *
@@ -63,21 +63,28 @@ class Parser {
      * @var Rule
      */
     protected $global;
-    
+
     /**
      * Aktuální blok
      *
      * @var Block
      */
     protected $block;
-    
+
+    /**
+     * Zásobník bloků
+     *
+     * @var Stack
+     */
+    protected $stack;
+
     /**
      * Právě se parsuje mixin
      *
      * @var bool
      */
     protected $mixin;
-    
+
     /**
      * Nejvyšší pozice v bufferu
      *
@@ -91,7 +98,7 @@ class Parser {
      * @var bool;
      */
     protected $condition;
-    
+
     protected function setOffset($offset) {
         $this->offset = $offset;
 
@@ -143,12 +150,14 @@ class Parser {
         $this->buffer = $this->removeComments($input);
         $this->setOffset(0);
         $this->mixin = FALSE;
-        $this->global = new Rule();
+        $this->global = new Global;
         $this->block = $this->global;
+        $this->stack = new Stack;
+        $this->stack->push($this->global);
         $this->whitespace();
 
         while ($this->parseNext());
-        
+
         if ($this->getOffset() <> strlen($this->buffer)) {
             $line = $this->getLine($this->maxOffset);
             //throw new ParseException("Chyba parsování " . ($this->file ? "v souboru '$this->file' " : "") . "na řádce $line");
@@ -161,7 +170,7 @@ class Parser {
 
         return $this->global;
     }
-    
+
     /**
      * Selektory na začátku bloku všeně prefixů
      *
@@ -500,6 +509,7 @@ class Parser {
      * @return bool
      */
     protected function ruleEnd() {
+        //NestedRule
         if ($this->block->parent !== NULL && $this->char('}')) {
             $this->block = $this->block->parent;
             return TRUE;
@@ -671,7 +681,7 @@ class Parser {
      *  *proměnná
      *  číslo (s jednotkou či bez)
      *  (*)řetězec - pozor na concat (proměnnou nelze nahradit hned)
-     * 
+     *
      *  *accessor
      *  raw (nejspíše pouze výsledek fce unquote nebo calc)
      *  *ternary operator
@@ -693,7 +703,7 @@ class Parser {
     protected function value(&$value) {
         return $this->spaceList($value);
     }
-    
+
     /**
      * Parametry mixinu
      *
@@ -722,7 +732,7 @@ class Parser {
             //číslo řádky musí probublat kvůli možné chybě ve výchozí hodnotě parametru, viz Compiler::callMixin()
             $args[$name] = array($value, $line);
         } while ($this->char(','));
-        
+
         return TRUE;
     }
 
@@ -746,7 +756,7 @@ class Parser {
         }
         return FALSE;
     }
-    
+
     /**
      * Položka seznamu nebo výchozí hodnota parametru mixinu
      *
@@ -759,7 +769,7 @@ class Parser {
 
     /**
      * Seznam položek oddělených mezerou
-     *   
+     *
      * @param NULL
      * @return array
      */
@@ -889,14 +899,14 @@ class Parser {
                 return TRUE;
             } else {
                 $this->setOffset($x);
-            }            
+            }
         }
         return FALSE;
     }
 
     /**
      * Operand ve výrazu
-     * 
+     *
      * @todo unární operátory, zrušení negace
      *
      * @param NULL
@@ -1246,7 +1256,7 @@ class Parser {
         echo '<pre>';
         echo substr($this->buffer, $this->maxOffset);
     }
-    
+
     /**
      * @internal
      */
@@ -1254,5 +1264,5 @@ class Parser {
         echo '<pre>';
         echo substr($this->buffer, $this->offset);
     }
-    
+
 }
