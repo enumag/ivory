@@ -230,16 +230,6 @@ class Compiler {
         //TODO: injektovat proměnné z PHP
         $this->variables[] = array();
 
-        //TODO: zde by již neměla být použita třída Rule - vždy jen selektory a prvky, + možná indikátor co to je
-        //může být trochu vnořené (media, keyframes)
-        //možná raději přidávat začátky a konce těchto speciálních bloků zvlášť
-        // - místo selektorů string, např. "font-face"?
-        //notnestedRule potřebuje selektory a vlastnosti, nic víc
-        //parenta nepotřebuje asi nikdo
-        //NestedRule extends Rule
-        //tak lehké to nebude, FontFace / Meida má parenta...
-        //je $parent vůbec třeba? nestačí stack?
-
         //globální blok
         $this->reduced[] = new Main;
 
