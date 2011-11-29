@@ -602,7 +602,8 @@ class Parser {
      */
     protected function property() {
         $x = $this->getOffset();
-        if (!$this->getActualBlock() instanceof Main && $this->prefix($prefix, array('important', 'raw', 'none')) &&
+        if (!$this->getActualBlock() instanceof Main &&
+                $this->prefix($prefix, array('important', 'raw', 'none')) &&
                 $this->name($name) &&
                 $this->assign() &&
                 $this->value($value) &&
