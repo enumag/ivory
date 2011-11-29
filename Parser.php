@@ -60,16 +60,9 @@ class Parser {
     /**
      * Globální blok
      *
-     * @var Rule
+     * @var Global
      */
     protected $global;
-
-    /**
-     * Aktuální blok
-     *
-     * @var Block
-     */
-    protected $block;
 
     /**
      * Zásobník bloků
@@ -77,13 +70,6 @@ class Parser {
      * @var Stack
      */
     protected $stack;
-
-    /**
-     * Právě se parsuje mixin
-     *
-     * @var bool
-     */
-    protected $mixin;
 
     /**
      * Nejvyšší pozice v bufferu
@@ -149,10 +135,8 @@ class Parser {
     public function parse($input) {
         $this->buffer = $this->removeComments($input);
         $this->setOffset(0);
-        $this->mixin = FALSE;
-        $this->global = new Global;
-        $this->block = $this->global;
         $this->stack = new Stack;
+        $this->global = new Global;
         $this->stack->push($this->global);
         $this->whitespace();
 
@@ -164,11 +148,20 @@ class Parser {
             throw new ParseException("Chyba parsování na řádce $line");
         }
 
-        if ($this->block !== $this->global) {
+        if ($this->getActualBlock() !== $this->global) {
             throw new ParseException("Neuzavřený blok");
         }
 
         return $this->global;
+    }
+
+    /**
+     * Vrátí aktuální blok
+     *
+     * @returns Block
+     */
+    protected function getActualBlock() {
+        return $this->stack->top();
     }
 
     /**
@@ -354,7 +347,7 @@ class Parser {
         $filter = function ($item) {
                 return $item instanceof Rule;
             };
-        $blocks = array_filter($this->block->properties, $filter);
+        $blocks = array_filter($this->getActualBlock()->properties, $filter);
         $last = end($blocks);
         return $last && $last->statement !== NULL && ($last->statement[0] == 'if' || $last->statement[0] == 'elseif');
     }
@@ -458,8 +451,7 @@ class Parser {
      */
     protected function mixinBegin() {
         //TODO nesmíme být ani uvnitř speciálního bloku (@font-face, @media)
-        if ($this->block === $this->global &&
-                !$this->mixin && //nejsme uvnitř mixinu ani bloku
+        if ($this->getActualBlock() === $this->global &&
                 $this->char(Compiler::$prefixes['mixin']) &&
                 $this->name($name) &&
                 $this->char('(') &&
@@ -467,9 +459,8 @@ class Parser {
                 $this->char(')') &&
                 $this->char('{')) {
             $mixin = new Mixin($name, $args);
-            $this->block->properties[] = $mixin;
-            $this->block = $mixin;
-            $this->mixin = TRUE;
+            $this->getActualBlock()->properties[] = $mixin;
+            $this->stack->push($mixin);
             return TRUE;
         }
     }
@@ -481,9 +472,9 @@ class Parser {
      */
     protected function RuleBegin() {
         if ($this->extendedSelectors($statement, $prefixes, $selectors) && $this->char('{')) {
-            $block = new Rule($this->block, $selectors, $prefixes, $statement);
-            $this->block->properties[] = $block;
-            $this->block = $block;
+            $block = new Rule($selectors, $prefixes, $statement);
+            $this->getActualBlock()->properties[] = $block;
+            $this->stack->push($block);
             return TRUE;
         }
         return FALSE;
@@ -495,9 +486,8 @@ class Parser {
      * @return bool
      */
     protected function mixinEnd() {
-        if ($this->mixin && $this->char('}')) {
-            $this->block = $this->global;
-            $this->mixin = FALSE;
+        if ($this->getActualBlock() instanceof Mixin && $this->char('}')) {
+            $this->stack->pop();
             return TRUE;
         }
         return FALSE;
@@ -509,9 +499,8 @@ class Parser {
      * @return bool
      */
     protected function ruleEnd() {
-        //NestedRule
-        if ($this->block->parent !== NULL && $this->char('}')) {
-            $this->block = $this->block->parent;
+        if ($this->getActualBlock() instanceof Rule && $this->char('}')) {
+            $this->stack->pop();
             return TRUE;
         }
         return FALSE;
@@ -528,7 +517,7 @@ class Parser {
         if ($this->char($prefix) &&
                 $this->name($name) &&
                 $this->end()) {
-            $this->block->properties[] = array($prefix, $name, array('list'), $this->getLine($x));
+            $this->getActualBlock()->properties[] = array($prefix, $name, array('list'), $this->getLine($x));
             return TRUE;
         }
         $this->setOffset($x);
@@ -543,12 +532,12 @@ class Parser {
     protected function atInclude() {
         return FALSE;
         $x = $this->getOffset();
-        if ($this->block === $this->global &&
-                !$this->mixin && $this->char('@include') &&
+        if ($this->getActualBlock() === $this->global &&
+                $this->char('@include') &&
                 $this->expression($path) &&
                 ($this->mediaQueries($media) || $media = '') && //nepovinné
                 $this->end()) {
-            $this->block->properties[] = array(Compiler::$prefixes['special'], 'include', $path, $media);
+            $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'include', $path, $media);
             return TRUE;
         }
         $this->setOffset($x);
@@ -577,12 +566,12 @@ class Parser {
     protected function atFontFace() {
         return FALSE;
         $x = $this->getOffset();
-        if ($this->block->parent === NULL && //globální blok nebo mixin bez zanoření
+        if (($this->getActualBlock() instanceof Global || $this->getActualBlock() instanceof Mixin) &&
                 $this->char('@font-face') &&
                 $this->char('{')) {
             throw new \Exception();
             //new FontFace
-            //$this->block->properties[] = array(Compiler::$prefixes['special'], 'font-face');
+            //$this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'font-face');
             return TRUE;
         }
         $this->setOffset($x);
@@ -601,7 +590,7 @@ class Parser {
                 $this->assign() &&
                 $this->value($value) &&
                 $this->end()) {
-            $this->block->properties[] = array($prefix, $name, $value, $this->getLine($x));
+            $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
             return TRUE;
         }
         $this->setOffset($x);
@@ -622,7 +611,7 @@ class Parser {
                 $this->assign() &&
                 $this->value($value) &&
                 $this->end()) {
-            $this->block->properties[] = array($prefix, $name, $value, $this->getLine($x), $index);
+            $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x), $index);
             return TRUE;
         }
         $this->setOffset($x);
