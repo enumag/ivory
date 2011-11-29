@@ -29,19 +29,12 @@ class Rule extends Block {
     public $statement;
 
     /**
-     * @var Block
-     */
-    public $parent;
-
-    /**
-     * @param Block
      * @param array
      * @param array
      * @param array
      */
-    public function __construct(Block $parent = NULL, array $selectors = array(''), array $prefixes = array(''), array $statement = NULL) {
+    public function __construct(array $selectors = array(''), array $prefixes = array(''), array $statement = NULL) {
         parent::__construct();
-        $this->parent = $parent;
         $this->prefixes = $prefixes;
         $this->selectors = $selectors;
         $this->statement = $statement;

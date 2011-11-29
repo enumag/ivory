@@ -70,6 +70,13 @@ class Parser {
      * @var Block
      */
     protected $block;
+
+    /**
+     * Zásobník bloků
+     *
+     * @var Stack
+     */
+    protected $stack;
     
     /**
      * Právě se parsuje mixin
@@ -143,8 +150,10 @@ class Parser {
         $this->buffer = $this->removeComments($input);
         $this->setOffset(0);
         $this->mixin = FALSE;
-        $this->global = new Rule();
+        $this->global = new Global;
         $this->block = $this->global;
+        $this->stack = new Stack;
+        $this->stack->push($this->global);
         $this->whitespace();
 
         while ($this->parseNext());
@@ -500,6 +509,7 @@ class Parser {
      * @return bool
      */
     protected function ruleEnd() {
+        //NestedRule
         if ($this->block->parent !== NULL && $this->char('}')) {
             $this->block = $this->block->parent;
             return TRUE;
