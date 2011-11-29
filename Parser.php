@@ -352,7 +352,7 @@ class Parser {
      */
     protected function inCondition() {
         $filter = function ($item) {
-                return $item instanceof Block;
+                return $item instanceof Rule;
             };
         $blocks = array_filter($this->block->properties, $filter);
         $last = end($blocks);
