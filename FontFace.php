@@ -13,18 +13,8 @@ namespace Ivory\StyleSheets;
  */
 class FontFace extends Block {
 
-    /**
-     * @var Block
-     */
-    public $parent;
-
-    /**
-     * @param array
-     * @param Block
-     */
-    public function __construct(Block $parent) {
+    public function __construct() {
         parent::__construct();
-        $this->parent = $parent;
     }
 
 }
