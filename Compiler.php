@@ -418,7 +418,11 @@ class Compiler {
             }
         }
 
+<<<<<<< HEAD
         if ($block instanceof NestedRule) {
+=======
+        if ($block instanceof Rule) {
+>>>>>>> origin/master
             $selectors = $this->combineSelectors($this->replaceVariables($block->prefixes), $selectors);
             $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors));
             $reduced = $this->findReduced($selectors);
