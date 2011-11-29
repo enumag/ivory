@@ -173,7 +173,7 @@ class Parser {
         }
         if ($this->selectors($prefixes)) {
             $return = TRUE;
-            if ($this->match('>>', $_)) {
+            if ($this->char('>>')) {
                 if (!$this->selectors($selectors)) {
                     $selectors = array('');
                 }
@@ -202,7 +202,7 @@ class Parser {
                 $this->whileStatement($statement) ||
                 $this->forStatement($statement) ||
                 $this->forEachStatement($statement)) {
-            $statement[1] = $line;
+            $statement['line'] = $line;
             return TRUE;
         }
         return FALSE;
@@ -217,7 +217,7 @@ class Parser {
     protected function ifStatement(&$statement) {
         $x = $this->getOffset();
         if ($this->char('if') && $this->char('(') && $this->expression($expr) && $this->char(')')) {
-            $statement = array('if', NULL, $expr);
+            $statement = array('if', 'expression' => $expr);
             return TRUE;
         }
         $this->setOffset($x);
@@ -232,8 +232,8 @@ class Parser {
      */
     protected function elseIfStatement(&$statement) {
         $x = $this->getOffset();
-        if ($this->inCondition() && $this->char('elseif') && $this->char('(') && $this->expression($expr) && $this->char(')')) {
-            $statement = array('elseif', NULL, $expr);
+        if ($this->findCondition() && $this->char('elseif') && $this->char('(') && $this->expression($expr) && $this->char(')')) {
+            $statement = array('elseif', 'expression' => $expr);
             return TRUE;
         }
         $this->setOffset($x);
@@ -247,7 +247,7 @@ class Parser {
      * @return bool
      */
     protected function elseStatement(&$statement) {
-        if ($this->inCondition() && $this->char('else')) {
+        if ($this->findCondition() && $this->char('else')) {
             $statement = array('else');
             return TRUE;
         }
@@ -263,7 +263,7 @@ class Parser {
     protected function whileStatement(&$statement) {
         $x = $this->getOffset();
         if ($this->char('while') && $this->char('(') && $this->expression($expr) && $this->char(')')) {
-            $statement = array('while', NULL, $expr);
+            $statement = array('while', 'expression' => $expr);
             return TRUE;
         }
         $this->setOffset($x);
@@ -286,7 +286,7 @@ class Parser {
                 $this->char('..') &&
                 $this->expression($expr2) &&
                 $this->char(')')) {
-            $statement = array('for', NULL, $variable, $expr1, $expr2);
+            $statement = array('for', $variable, $expr1, $expr2);
             return TRUE;
         }
         $this->setOffset($x);
@@ -308,7 +308,7 @@ class Parser {
                 $this->forEachKey($key) &&
                 $this->variable($value, FALSE) &&
                 $this->char(')')) {
-            $statement = array('foreach', NULL, $map, $key, $value);
+            $statement = array('foreach', $map, $key, $value);
             return TRUE;
         }
         $this->setOffset($x);
@@ -333,17 +333,20 @@ class Parser {
     }
 
     /**
-     * Detekuje podmínku
+     * Najde podmínku
      *
-     * @return bool
+     * @return NestedRule
      */
-    protected function inCondition() {
+    protected function findCondition() {
         $filter = function ($item) {
                 return $item instanceof NestedRule;
             };
         $blocks = array_filter($this->getActualBlock()->properties, $filter);
         $last = end($blocks);
-        return $last && $last->statement !== NULL && ($last->statement[0] == 'if' || $last->statement[0] == 'elseif');
+        if ($last && $last->statement !== NULL && ($last->statement[0] == 'if' || $last->statement[0] == 'elseif')) {
+            return $last;
+        }
+        return NULL;
     }
 
     /**
@@ -466,6 +469,12 @@ class Parser {
      */
     protected function ruleBegin() {
         if ($this->extendedSelectors($statement, $prefixes, $selectors) && $this->char('{')) {
+            if ($statement[0] == 'elseif' || $statement[0] == 'else') {
+                $statement['condition'] = $this->findCondition();
+                if ($statement['condition'] === NULL) {
+                    throw new \Exception("Podmínka nenalezena");
+                }
+            }
             $block = new NestedRule($selectors, $prefixes, $statement);
             $this->getActualBlock()->properties[] = $block;
             $this->stack->push($block);
@@ -585,7 +594,7 @@ class Parser {
         $prefix = Compiler::$prefixes['mixin'];
         if ($this->char($prefix) &&
                 $this->name($name) &&
-                $this->assign() &&
+                $this->char(':') &&
                 $this->value($value) &&
                 $this->end()) {
             $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
@@ -605,7 +614,7 @@ class Parser {
         if (!$this->getActualBlock() instanceof Main &&
                 $this->prefix($prefix, array('important', 'raw', 'none')) &&
                 $this->name($name) &&
-                $this->assign() &&
+                $this->char(':') &&
                 $this->value($value) &&
                 $this->end()) {
             $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
@@ -625,7 +634,7 @@ class Parser {
         $prefix = Compiler::$prefixes['variable'];
         if ($this->char($prefix) &&
                 $this->name($name) &&
-                $this->assign() &&
+                $this->char(':') &&
                 $this->value($value) &&
                 $this->end()) {
             $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
@@ -646,7 +655,7 @@ class Parser {
         if ($this->char($prefix) &&
                 $this->name($name) &&
                 $this->index($index) &&
-                $this->assign() &&
+                $this->char(':') &&
                 $this->value($value) &&
                 $this->end()) {
             $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x), $index);
@@ -686,15 +695,6 @@ class Parser {
             return TRUE;
         }
         return FALSE;
-    }
-
-    /**
-     * Přiřazení
-     *
-     * @return bool
-     */
-    protected function assign() {
-        return $this->char(':');
     }
 
     /**
@@ -775,7 +775,7 @@ class Parser {
         if ($this->variable($variable, FALSE)) {
             $name = $variable[1];
             $x = $this->getOffset();
-            if ($this->assign() && $this->element($value)) {
+            if ($this->char(':') && $this->element($value)) {
                 ;
             } else {
                 $this->setOffset($x);

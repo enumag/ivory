@@ -11,7 +11,7 @@ namespace Ivory\StyleSheets;
 /**
  * @author Jáchym Toušek
  */
-class Stack implements Countable {
+class Stack implements \Countable {
 
     /**
      * @var array

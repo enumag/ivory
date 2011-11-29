@@ -11,7 +11,7 @@ namespace Ivory\StyleSheets;
 /**
  * @author Jáchym Toušek
  */
-class NestedRule extends Block {
+class NestedRule extends Rule {
 
     /**
      * @var array

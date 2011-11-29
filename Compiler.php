@@ -120,6 +120,7 @@ class Compiler {
      * @return void
      */
     public function __construct() {
+        $this->files = array();
         $this->functions = array();
         $this->prepareFunctions();
     }
@@ -211,10 +212,6 @@ class Compiler {
     /**
      * Výsledný textový výstup
      *
-     * @todo
-     *  + prefix, ! prefix
-     *  speciální bloky, import, charset atd.
-     *
      * @param string
      * @return string
      */
@@ -222,13 +219,16 @@ class Compiler {
         $locale = setlocale(LC_NUMERIC, 0);
         setlocale(LC_NUMERIC, "C");
 
-        $parser = new Parser();
+        $parser = new Parser;
         $tree = $parser->parse($input);
         
         //inicializace prázdných polí
         $this->mixins = array();
         $this->reduced = array();
         $this->variables = array();
+
+        //TODO: injektovat proměnné z PHP
+        $this->variables[] = array();
 
         //TODO: zde by již neměla být použita třída Rule - vždy jen selektory a prvky, + možná indikátor co to je
         //může být trochu vnořené (media, keyframes)
@@ -241,7 +241,7 @@ class Compiler {
         //je $parent vůbec třeba? nestačí stack?
 
         //globální blok
-        $this->reduced[] = new Rule();
+        $this->reduced[] = new Main;
 
         $this->reduceBlock($tree);
 
@@ -407,7 +407,7 @@ class Compiler {
         // každý selektor je vypsán tam, kde byl poprvé zmíněn bez ohledu na ostatní výskyty
 
         //inicializace nové vrstvy proměnných
-        if ($variables !== NULL) {
+        if (!$block instanceof Main) {
             $this->variables[] = array();
             foreach ($variables as $variable) {
                 try {
@@ -421,6 +421,8 @@ class Compiler {
         if ($block instanceof NestedRule) {
             $selectors = $this->combineSelectors($this->replaceVariables($block->prefixes), $selectors);
             $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors));
+            $reduced = $this->findReduced($selectors);
+        } elseif ($block instanceof Mixin) {
             $reduced = $this->findReduced($selectors);
         } else {
             $reduced = new $block;
@@ -476,32 +478,6 @@ class Compiler {
             array_pop($this->variables);
         }
     }
-    
-    /**
-     * Zjistí zda již proběhla některá větev podmínky
-     *
-     * @param NestedRule
-     * @return bool
-     */
-    protected function getConditionStatus(NestedRule $block) {
-        $last = NULL;
-        $actual = $this->stack->pop();
-        $parent = $this->stack->top();
-        $this->stack->push($actual);
-        foreach ($parent->properties as $item) {
-            if ($item instanceof NestedRule) {
-                if ($item == $block) {
-                    break;
-                } else {
-                    $last = $item;
-                }
-            }
-        }
-        if (!$last || $last->statement === NULL || ($last->statement[0] != 'if' && $last->statement[0] != 'elseif')) {
-            throw new \Exception("Podmínka nenalezena");
-        }
-        return $last->statement[3];
-    }
 
     /**
      * Volání vnořeného bloku
@@ -516,36 +492,36 @@ class Compiler {
             try {
                 switch ($block->statement[0]) {
                     case 'if':
-                        if ($this->evaluateCondition($this->evaluateExpression($block->statement[2]))) {
-                            $block->statement[3] = TRUE;
+                        if ($this->evaluateCondition($this->evaluateExpression($block->statement['expression']))) {
+                            $block->statement['status'] = TRUE;
                             $this->reduceBlock($block, $selectors);
                         } else {
-                            $block->statement[3] = FALSE;
+                            $block->statement['status'] = FALSE;
                         }
                         break;
                     case 'elseif':
-                        if ($this->getConditionStatus($block)) {
-                            $block->statement[3] = TRUE;
-                        } elseif ($this->evaluateCondition($this->evaluateExpression($block->statement[2]))) {
-                            $block->statement[3] = TRUE;
+                        if ($block->statement['condition']->statement['status']) {
+                            $block->statement['status'] = TRUE;
+                        } elseif ($this->evaluateCondition($this->evaluateExpression($block->statement['expression']))) {
+                            $block->statement['status'] = TRUE;
                             $this->reduceBlock($block, $selectors);
                         } else {
-                            $block->statement[3] = FALSE;
+                            $block->statement['status'] = FALSE;
                         }
                         break;
                     case 'else':
-                        if (!$this->getConditionStatus($block)) {
+                        if (!$block->statement['condition']->statement['status']) {
                             $this->reduceBlock($block, $selectors);
                         }
                         break;
                     case 'while':
-                        while ($this->evaluateCondition($this->evaluateExpression($block->statement[2]))) {
+                        while ($this->evaluateCondition($this->evaluateExpression($block->statement['expression']))) {
                             $this->reduceBlock($block, $selectors);
                         }
                         break;
                     case 'for':
-                        $begin = $this->reduceValue($block->statement[3]);
-                        $end = $this->reduceValue($block->statement[4]);
+                        $begin = $this->reduceValue($block->statement[2]);
+                        $end = $this->reduceValue($block->statement[3]);
                         if (!$this->isInteger($begin)) {
                             throw new CompileException("Počáteční hodnota for cyklu není číslo");
                         }
@@ -557,25 +533,25 @@ class Compiler {
                         if ($begin < $end) {
                             for ($i = $begin; $i <= $end; $i++) {
                                 $variables = array();
-                                $variables[] = array($block->statement[2][1], array('unit', $i), $block->statement[1]);
+                                $variables[] = array($block->statement[1][1], array('unit', $i), $block->statement[1]);
                                 $this->reduceBlock($block, $selectors, $variables);
                             }
                         } else {
                             for ($i = $begin; $i >= $end; $i--) {
                                 $variables = array();
-                                $variables[] = array($block->statement[2][1], array('unit', $i), $block->statement[1]);
+                                $variables[] = array($block->statement[1][1], array('unit', $i), $block->statement[1]);
                                 $this->reduceBlock($block, $selectors, $variables);
                             }
                         }
                         break;
                     case 'foreach':
-                        $map = $this->findVariable($block->statement[2][1]);
+                        $map = $this->findVariable($block->statement[1][1]);
                         foreach ($map[1] as $key => $value) {
                             $variables = array();
                             if ($block->statement[3] !== NULL) {
-                                $variables[] = array($block->statement[3][1], $this->indexToValue($key), $block->statement[1]);
+                                $variables[] = array($block->statement[2][1], $this->indexToValue($key), $block->statement[1]);
                             }
-                            $variables[] = array($block->statement[4][1], $value, $block->statement[1]);
+                            $variables[] = array($block->statement[3][1], $value, $block->statement[1]);
                             $this->reduceBlock($block, $selectors, $variables);
                         }
                         break;
@@ -584,11 +560,11 @@ class Compiler {
                     	break;
                 }
             } catch (CompileException $e) {
-                 $this->throwError($e->getMessage(), $block->statement[1]);
+                 $this->throwError($e->getMessage(), $block->statement['line']);
             }
         } else {
             //bez řídících struktur
-            $this->reduceBlock($block, $selectors, NULL);
+            $this->reduceBlock($block, $selectors);
         }
     }
 
