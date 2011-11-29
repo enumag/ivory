@@ -34,9 +34,11 @@ class Parser {
             //'atImport',
             //'atKeyFrames',
             //'atCharset',
-            'mixinCall',
             'property',
+            'assign',
             'mapAccess',
+            'mixinCallSimple',
+            'mixinCall',
             'mixinBegin',
             'ruleBegin',
             'ruleEnd',
@@ -56,13 +58,6 @@ class Parser {
      * @var int
      */
     private $offset;
-
-    /**
-     * Globální blok
-     *
-     * @var Global
-     */
-    protected $global;
 
     /**
      * Zásobník bloků
@@ -136,8 +131,7 @@ class Parser {
         $this->buffer = $this->removeComments($input);
         $this->setOffset(0);
         $this->stack = new Stack;
-        $this->global = new Global;
-        $this->stack->push($this->global);
+        $this->stack->push(new Main);
         $this->whitespace();
 
         while ($this->parseNext());
@@ -148,11 +142,11 @@ class Parser {
             throw new ParseException("Chyba parsování na řádce $line");
         }
 
-        if ($this->getActualBlock() !== $this->global) {
+        if (!$this->getActualBlock() instanceof Main) {
             throw new ParseException("Neuzavřený blok");
         }
 
-        return $this->global;
+        return $this->stack->top();
     }
 
     /**
@@ -451,7 +445,7 @@ class Parser {
      */
     protected function mixinBegin() {
         //TODO nesmíme být ani uvnitř speciálního bloku (@font-face, @media)
-        if ($this->getActualBlock() === $this->global &&
+        if ($this->getActualBlock() instanceof Main &&
                 $this->char(Compiler::$prefixes['mixin']) &&
                 $this->name($name) &&
                 $this->char('(') &&
@@ -507,24 +501,6 @@ class Parser {
     }
 
     /**
-     * Volání mixinu bez parametrů
-     *
-     * @return bool
-     */
-    protected function mixinCall() {
-        $x = $this->getOffset();
-        $prefix = Compiler::$prefixes['mixin'];
-        if ($this->char($prefix) &&
-                $this->name($name) &&
-                $this->end()) {
-            $this->getActualBlock()->properties[] = array($prefix, $name, array('list'), $this->getLine($x));
-            return TRUE;
-        }
-        $this->setOffset($x);
-        return FALSE;
-    }
-
-    /**
      * Volání dalšího souboru
      *
      * @return bool
@@ -532,7 +508,7 @@ class Parser {
     protected function atInclude() {
         return FALSE;
         $x = $this->getOffset();
-        if ($this->getActualBlock() === $this->global &&
+        if ($this->getActualBlock() instanceof Main &&
                 $this->char('@include') &&
                 $this->expression($path) &&
                 ($this->mediaQueries($media) || $media = '') && //nepovinné
@@ -566,7 +542,7 @@ class Parser {
     protected function atFontFace() {
         return FALSE;
         $x = $this->getOffset();
-        if (($this->getActualBlock() instanceof Global || $this->getActualBlock() instanceof Mixin) &&
+        if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
                 $this->char('@font-face') &&
                 $this->char('{')) {
             throw new \Exception();
@@ -582,13 +558,71 @@ class Parser {
     }
 
     /**
-     * Vlastnost, proměnná, volání mixinu
+     * Volání mixinu bez parametrů
+     *
+     * @return bool
+     */
+    protected function mixinCallSimple() {
+        $x = $this->getOffset();
+        $prefix = Compiler::$prefixes['mixin'];
+        if ($this->char($prefix) &&
+                $this->name($name) &&
+                $this->end()) {
+            $this->getActualBlock()->properties[] = array($prefix, $name, array('list'), $this->getLine($x));
+            return TRUE;
+        }
+        $this->setOffset($x);
+        return FALSE;
+    }
+
+    /**
+     * Volání mixinu s parametry
+     *
+     * @return bool
+     */
+    protected function mixinCall() {
+        $x = $this->getOffset();
+        $prefix = Compiler::$prefixes['mixin'];
+        if ($this->char($prefix) &&
+                $this->name($name) &&
+                $this->assign() &&
+                $this->value($value) &&
+                $this->end()) {
+            $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
+            return TRUE;
+        }
+        $this->setOffset($x);
+        return FALSE;
+    }
+
+    /**
+     * Vlastnost
      *
      * @return bool
      */
     protected function property() {
         $x = $this->getOffset();
-        if ($this->prefix($prefix) &&
+        if (!$this->getActualBlock() instanceof Main && $this->prefix($prefix, array('important', 'raw', 'none')) &&
+                $this->name($name) &&
+                $this->assign() &&
+                $this->value($value) &&
+                $this->end()) {
+            $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
+            return TRUE;
+        }
+        $this->setOffset($x);
+        return FALSE;
+    }
+
+    /**
+     * Přiřazení do proměnné
+     *
+     * @return bool
+     */
+    protected function assign() {
+        $x = $this->getOffset();
+        $prefix = Compiler::$prefixes['variable'];
+        if ($this->char($prefix) &&
                 $this->name($name) &&
                 $this->assign() &&
                 $this->value($value) &&
@@ -625,11 +659,12 @@ class Parser {
      * Prefix vlastnosti
      *
      * @param NULL
+     * @param array
      * @return bool
      */
-    protected function prefix(&$prefix) {
-        foreach (Compiler::$prefixes as $char) {
-            if ($this->char($char, FALSE)) {
+    protected function prefix(&$prefix, array $allowed = NULL) {
+        foreach (Compiler::$prefixes as $key => $char) {
+            if ((empty($allowed) || in_array($key, $allowed)) && $this->char($char, FALSE)) {
                 $prefix = $char;
                 return TRUE;
             }
