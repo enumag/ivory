@@ -231,10 +231,9 @@ class Compiler {
         $this->variables = array();
 
         //globální blok
-        $this->reduced[] = new Block(array(''));
+        $this->reduced[] = new Rule();
 
-        // pole selektorů nesmí být prázdné
-        $this->reduceBlock($tree, array(''));
+        $this->reduceBlock($tree);
 
         ob_start();
         foreach ($this->reduced as $block) {
@@ -260,10 +259,6 @@ class Compiler {
                 //surové CSS
                 echo $block;
             } else {
-                //elseif $block instanceof include/import/at-directive
-                //v případě include pustit parser(!) na cílový soubor a výstup z parseru přidat do $this->reduced na aktuální místo
-                //možná bude třeba použít iterátor
-                //pozor na include čistého CSS => copy & paste
                 throw new \Exception("Neimplementováno");
             }
         }
@@ -378,15 +373,15 @@ class Compiler {
      * Hledání zkompilovaného bloku
      *
      * @param array
-     * @return Block
+     * @return Rule
      */
     protected function findReduced(array $selectors) {
         foreach ($this->reduced as $block) {
-            if ($block instanceof Block && $selectors == $block->selectors) {
+            if ($block instanceof Rule && $selectors == $block->selectors) {
                 return $block;
             }
         }
-        return $this->reduced[] = new Block($selectors);
+        return $this->reduced[] = new Rule($selectors);
     }
 
     /**
@@ -397,7 +392,7 @@ class Compiler {
      * @param array
      * @return void
      */
-    protected function reduceBlock(Block $block, array $selectors, array $variables = array()) {
+    protected function reduceBlock(Block $block, array $selectors = array(''), array $variables = array()) {
         // kvůli + prefixu nejdříve vše jen ukládat, výpis až poté
         // každý selektor je vypsán tam, kde byl poprvé zmíněn bez ohledu na ostatní výskyty
 
@@ -413,6 +408,7 @@ class Compiler {
             }
         }
 
+        //TODO: pouze pokud je $block instanceof Rule
         $selectors = $this->combineSelectors($this->replaceVariables($block->prefixes), $selectors);
         $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors));
 
@@ -421,7 +417,6 @@ class Compiler {
         foreach ($block->properties as $property) {
             try {
                 if (is_array($property)) {
-                    //array(prefix name value) or Block
                     if ($property[0] == static::$prefixes['variable']) {
                         if (count($property) == 5) {//zápis do pole
                             $this->saveToMap($property[1], $this->valueToIndex($property[4]), $this->reduceValue($property[2]));
@@ -443,7 +438,7 @@ class Compiler {
                     } else {
                         throw new \Exception("Neimplementováno");
                     }
-                } elseif ($property instanceof Block) {
+                } elseif ($property instanceof Rule) {
                     $this->callBlock($property, $selectors);
                 } elseif ($property instanceof Mixin) {
                     if (array_key_exists($property->name, $this->mixins)) {
@@ -467,13 +462,13 @@ class Compiler {
     /**
      * Zjistí zda již proběhla některá větev podmínky
      *
-     * @param Block
+     * @param Rule
      * @return bool
      */
-    protected function getConditionStatus($block) {
+    protected function getConditionStatus(Rule $block) {
         $last = NULL;
         foreach ($block->parent->properties as $item) {
-            if ($item instanceof Block) {
+            if ($item instanceof Rule) {
                 if ($item == $block) {
                     break;
                 } else {
@@ -490,11 +485,11 @@ class Compiler {
     /**
      * Volání vnořeného bloku
      *
-     * @param Block
+     * @param Rule
      * @param array
      * @return void
      */
-    protected function callBlock(Block $block, array $selectors) {
+    protected function callBlock(Rule $block, array $selectors) {
         if ($block->statement !== NULL) {
             //je definována řídící struktura
             try {
