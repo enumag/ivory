@@ -570,7 +570,7 @@ class Parser {
         if ($this->block->parent === NULL && //globální blok nebo mixin bez zanoření
                 $this->char('@font-face') &&
                 $this->char('{')) {
-            throw new \Exeption();
+            throw new \Exception();
             //new FontFace
             //$this->block->properties[] = array(Compiler::$prefixes['special'], 'font-face');
             return TRUE;
