@@ -418,11 +418,14 @@ class Compiler {
             }
         }
 
-        //TODO: pouze pokud je $block instanceof Rule
-        $selectors = $this->combineSelectors($this->replaceVariables($block->prefixes), $selectors);
-        $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors));
-
-        $reduced = $this->findReduced($selectors);
+        if ($block instanceof Rule) {
+            $selectors = $this->combineSelectors($this->replaceVariables($block->prefixes), $selectors);
+            $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors));
+            $reduced = $this->findReduced($selectors);
+        } else {
+            $reduced = new $block;
+            $this->reduced[] = $reduced;
+        }
 
         foreach ($block->properties as $property) {
             try {
@@ -436,7 +439,12 @@ class Compiler {
                     } elseif ($property[0] == static::$prefixes['mixin']) {
                         //TODO: volat $this->reduceValue($property[2]) ?
                         $this->callMixin($property[1], $property[2], $selectors);
-                    } elseif ($property[0] == static::$prefixes['none']) {
+                    } elseif ($property[0] == static::$prefixes['none'] ||
+                            $property[0] == static::$prefixes['important'] ||
+                            $property[0] == static::$prefixes['raw']) {
+                        if ($selectors == array('')) {
+                            throw new CompileException("Vlastnost nemůže být v globálním bloku");
+                        }
                         $reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
                     } elseif ($property[0] == static::$prefixes['special'] && $property[1] == 'include') {
                         $value = $this->reduceValue($property[2]);
@@ -606,7 +614,7 @@ class Compiler {
             //$default[1] - číslo řádku
             $args[] = array($key, count($list) > 0 ? array_shift($list) : ($default[0] === NULL ? array('bool', FALSE) : $default[0]), $default[1]);
         }
-        $this->reduceBlock($mixin->block, $selectors, $args);
+        $this->reduceBlock($mixin, $selectors, $args);
     }
 
     /**

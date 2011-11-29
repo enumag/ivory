@@ -16,28 +16,16 @@ class Rule extends Block {
     /**
      * @var array
      */
-    public $prefixes;
-
-    /**
-     * @var array
-     */
     public $selectors;
 
     /**
-     * @var array
-     */
-    public $statement;
-
-    /**
      * @param array
      * @param array
      * @param array
      */
-    public function __construct(array $selectors = array(''), array $prefixes = array(''), array $statement = NULL) {
+    public function __construct(array $selectors) {
         parent::__construct();
-        $this->prefixes = $prefixes;
         $this->selectors = $selectors;
-        $this->statement = $statement;
     }
 
 }
