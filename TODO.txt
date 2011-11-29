@@ -4,4 +4,3 @@
 - použít vylepšené & místo >>?
 - jak kešovat závislosti
 - bude při include vadit Global?
-- todo oddělit parsování vlastností o proměnných, v některých kontextech vlastnosti být nesmí
