@@ -517,7 +517,7 @@ class Parser {
     protected function atInclude() {
         return FALSE;
         $x = $this->getOffset();
-        if ($this->getActualBlock() instanceof Main &&
+        if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
                 $this->char('@include') &&
                 $this->expression($path) &&
                 ($this->mediaQueries($media) || $media = '') && //nepovinné
@@ -557,7 +557,7 @@ class Parser {
             throw new \Exception();
             //font-face by mohlo být i v podmínce / cyklu pokud tam není selektor
             //- hodilo by se třeba definovat pole fontů a pak to pustit
-            //speciální bloky mohou mít statement!!
+            //speciální bloky mohou mít statement? blbost kvůli include, raději kontolovat že nejsou žádné selektory
             //new FontFace
             //$this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'font-face');
             return TRUE;
