@@ -579,7 +579,7 @@ class Parser {
         if ($this->char($prefix) &&
                 $this->name($name) &&
                 $this->char(':') &&
-                $this->value($value) &&
+                $this->commaList($value) &&
                 $this->end()) {
             $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
             return TRUE;
@@ -599,7 +599,7 @@ class Parser {
                 $this->prefix($prefix, array('important', 'raw', 'none')) &&
                 $this->name($name) &&
                 $this->char(':') &&
-                $this->value($value) &&
+                $this->commaList($value) &&
                 $this->end()) {
             $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
             return TRUE;
@@ -619,7 +619,7 @@ class Parser {
         if ($this->char($prefix) &&
                 $this->name($name) &&
                 $this->char(':') &&
-                $this->value($value) &&
+                $this->commaList($value) &&
                 $this->end()) {
             $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x));
             return TRUE;
@@ -629,7 +629,7 @@ class Parser {
     }
 
     /**
-     * Přístup do pole
+     * Zápis do pole
      *
      * @return bool
      */
@@ -640,7 +640,7 @@ class Parser {
                 $this->name($name) &&
                 $this->index($index) &&
                 $this->char(':') &&
-                $this->value($value) &&
+                $this->spaceList($value) &&
                 $this->end()) {
             $this->getActualBlock()->properties[] = array($prefix, $name, $value, $this->getLine($x), $index);
             return TRUE;
@@ -679,41 +679,6 @@ class Parser {
             return TRUE;
         }
         return FALSE;
-    }
-
-    /**
-     * Hodnota.
-     *
-     * @todo
-     *  *výraz - obsahuje závorky, znaménka, čísla, fce, proměnné, barvy, accessory, zápory
-     *  barva
-     *  slovo
-     *  seznam
-     *  (*)funkce
-     *  *proměnná
-     *  číslo (s jednotkou či bez)
-     *  (*)řetězec - pozor na concat (proměnnou nelze nahradit hned)
-     *
-     *  *accessor
-     *  raw (nejspíše pouze výsledek fce unquote nebo calc)
-     *  *ternary operator
-     *  *jednoargumentový operátor (+-) -> záporná hodnota
-     *
-     * oddělit zvlášť simpleValue?
-     * operátory jen jako zvláštní případ funkcí?
-     * fuknce by měly dostat surový argument (expression) nikoli hodnotu
-     *  - jen tak může calc vytvořit raw (překlad % na mod)
-     *
-     * porovnávací operátory pro if
-     * unární zleva, zprava, binární, ternární operátory
-     *
-     * na výrazy zkusit zásobník
-     *
-     * @param NULL
-     * @return array
-     */
-    protected function value(&$value) {
-        return $this->spaceList($value);
     }
 
     /**
