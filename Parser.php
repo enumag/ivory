@@ -145,7 +145,7 @@ class Parser {
             throw new ParseException("Neuzavřený blok");
         }
 
-        return $this->stack->top();
+        return $this->getActualBlock();
     }
 
     /**
