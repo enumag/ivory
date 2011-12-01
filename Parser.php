@@ -41,8 +41,7 @@ class Parser {
             'mixinCall',
             'mixinBegin',
             'ruleBegin',
-            'ruleEnd',
-            'mixinEnd',
+            'blockEnd',
     );
 
     /**
@@ -468,7 +467,9 @@ class Parser {
      * @return bool
      */
     protected function ruleBegin() {
-        if ($this->extendedSelectors($statement, $prefixes, $selectors) && $this->char('{')) {
+        if (!$this->getActualBlock() instanceof SpecialBlock &&
+                $this->extendedSelectors($statement, $prefixes, $selectors) &&
+                $this->char('{')) {
             if ($statement[0] == 'elseif' || $statement[0] == 'else') {
                 $statement['condition'] = $this->findCondition();
                 if ($statement['condition'] === NULL) {
@@ -484,25 +485,12 @@ class Parser {
     }
 
     /**
-     * Konec mixinu
-     *
-     * @return bool
-     */
-    protected function mixinEnd() {
-        if ($this->getActualBlock() instanceof Mixin && $this->char('}')) {
-            $this->stack->pop();
-            return TRUE;
-        }
-        return FALSE;
-    }
-
-    /**
      * Konec bloku
      *
      * @return bool
      */
-    protected function ruleEnd() {
-        if ($this->getActualBlock() instanceof NestedRule && $this->char('}')) {
+    protected function blockEnd() {
+        if (!$this->getActualBlock() instanceof Main && $this->char('}')) {
             $this->stack->pop();
             return TRUE;
         }
@@ -549,17 +537,13 @@ class Parser {
      * @return bool
      */
     protected function atFontFace() {
-        return FALSE;
         $x = $this->getOffset();
         if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
                 $this->char('@font-face') &&
                 $this->char('{')) {
-            throw new \Exception();
-            //font-face by mohlo být i v podmínce / cyklu pokud tam není selektor
-            //- hodilo by se třeba definovat pole fontů a pak to pustit
-            //speciální bloky mohou mít statement? blbost kvůli include, raději kontolovat že nejsou žádné selektory
-            //new FontFace
-            //$this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'font-face');
+            $block = new FontFace;
+            $this->getActualBlock()->properties[] = $block;
+            $this->stack->push($block);
             return TRUE;
         }
         $this->setOffset($x);

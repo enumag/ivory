@@ -11,10 +11,4 @@ namespace Ivory\StyleSheets;
 /**
  * @author Jáchym Toušek
  */
-class FontFace extends SpecialBlock {
-
-    public function __construct() {
-        parent::__construct();
-    }
-
-}
+abstract class SpecialBlock extends Block {}
