@@ -4,3 +4,4 @@
 - otestovat include
 - možnost nastavení defaultní jednotky
 - jednotka #, výchozí jednotka
+- accessory
