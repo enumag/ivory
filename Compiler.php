@@ -242,7 +242,12 @@ class Compiler {
                     //zahoď prázdné bloky
                     continue;
                 }
-                echo implode(',' . static::NL, $block->selectors) . ' {' . static::NL;
+                if ($block instanceof Rule) {
+                    echo implode(',' . static::NL, $block->selectors);
+                } elseif ($block instanceof FontFace) {
+                    echo '@font-face';
+                }
+                echo ' {' . static::NL;
                 foreach ($block->properties as $property) {
                     $value = $this->compileValue($property[2]);
                     if ($property[0] == static::$prefixes['important']) {
@@ -307,6 +312,9 @@ class Compiler {
             case 'unit':
                 $number = ltrim(round($value[1], 3), '0');
                 return ($number == '' ? 0 : $number) . (isset($value[2]) && $value[1] <> 0 ? $value[2] : NULL);
+            case 'args':
+                array_shift($value);
+                return implode(', ', array_map(array($this, 'compileValue'), $value));
             case 'list':
                 array_shift($value);
                 return implode(' ', array_map(array($this, 'compileValue'), $value));
@@ -434,7 +442,7 @@ class Compiler {
                     } elseif ($property[0] == static::$prefixes['none'] ||
                             $property[0] == static::$prefixes['important'] ||
                             $property[0] == static::$prefixes['raw']) {
-                        if ($selectors == array('')) {
+                        if ($reduced instanceof Main) {
                             throw new CompileException("Vlastnost nemůže být v globálním bloku");
                         }
                         $reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
@@ -448,13 +456,15 @@ class Compiler {
                     } else {
                         throw new \Exception("Neimplementováno");
                     }
-                } elseif ($property instanceof NestedRule) {
+                } elseif (!$reduced instanceof SpecialBlock && $property instanceof NestedRule) {
                     $this->callBlock($property, $selectors);
-                } elseif ($property instanceof Mixin) {
+                } elseif (!$reduced instanceof SpecialBlock && $property instanceof Mixin) {
                     if (array_key_exists($property->name, $this->mixins)) {
                         throw new CompileException("Mixin '$name' již existuje");
                     }
                     $this->mixins[$property->name] = $property;
+                } elseif ($property instanceof FontFace) {
+                    $this->reduceBlock($property);
                 } else {
                     throw new \Exception("Neimplementováno");
                 }
