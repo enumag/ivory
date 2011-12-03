@@ -779,14 +779,15 @@ class Compiler {
      * @return array
      */
     protected function reduceValue(array $value) {
-        while (in_array($value[0], array('list', 'expression', 'variable', 'function', 'rawmap'))) {
+        while (in_array($value[0], array('args', 'list', 'expression', 'variable', 'function', 'rawmap'))) {
             switch ($value[0]) {
+                case 'args':
                 case 'list':
-                    array_shift($value);
+                    $type = array_shift($value);
                     foreach ($value as $key => $item) {
                         $value[$key] = $this->reduceValue($item);
                     }
-                    array_unshift($value, 'list');
+                    array_unshift($value, $type);
                     break 2;
                 case 'expression':
                     $value = $this->evaluateExpression($value);
