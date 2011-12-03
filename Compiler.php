@@ -456,9 +456,9 @@ class Compiler {
                     } else {
                         throw new \Exception("Neimplementováno");
                     }
-                } elseif (!$reduced instanceof SpecialBlock && $property instanceof NestedRule) {
+                } elseif (!$reduced instanceof AtRule && $property instanceof NestedRule) {
                     $this->callBlock($property, $selectors);
-                } elseif (!$reduced instanceof SpecialBlock && $property instanceof Mixin) {
+                } elseif (!$reduced instanceof AtRule && $property instanceof Mixin) {
                     if (array_key_exists($property->name, $this->mixins)) {
                         throw new CompileException("Mixin '$name' již existuje");
                     }
