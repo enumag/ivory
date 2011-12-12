@@ -220,7 +220,11 @@ class Compiler {
         setlocale(LC_NUMERIC, "C");
 
         $parser = new Parser;
-        $tree = $parser->parse($input);
+        try {
+            $tree = $parser->parse($input);
+        } catch (Exception $e) {
+            throw $e->setFile($this->getFile());
+        }
         
         //inicializace prázdných polí
         $this->mixins = array();
@@ -274,10 +278,10 @@ class Compiler {
     /**
      * Zjistí aktuální soubor
      *
-     * @return string|bool
+     * @return string
      */
     protected function getFile() {
-        return end($this->files);
+        return (string) end($this->files);
     }
 
     /**
@@ -608,17 +612,22 @@ class Compiler {
             if (pathinfo($path, PATHINFO_EXTENSION) == 'iss' && file_exists($path)) {
                 $this->addFile(realpath($path));
                 $parser = new Parser();
-                $tree = $parser->parse(file_get_contents($this->getFile()));
+                try {
+                    $tree = $parser->parse(file_get_contents($this->getFile()));
+                } catch (Exception $e) {
+                    throw $e->setFile($this->getFile());
+                }
                 //media zatím zahodit, později vložit @media blok
                 // pole selektorů nesmí být prázdné
                 $this->reduceBlock($tree, array(''));
-                break;
-            }
-            if (pathinfo($path, PATHINFO_EXTENSION) == 'css' && file_exists($path)) {
+                return;
+            } elseif (pathinfo($path, PATHINFO_EXTENSION) == 'css' && file_exists($path)) {
                 $this->reduced[] = file_get_contents($path);
-                break;
+                return;
             }
         }
+        //TODO viz kontroly v $this->compileFile
+        throw new CompileException("Soubor '$file' se nepodařilo vložit");
     }
     
     /**

@@ -23,4 +23,5 @@ try {
         var_dump($output);
 } catch(Exception $ex) {
     echo $ex->getFile() . ':' . $ex->getLine() . ' ' . $ex->getMessage();
+    throw $ex;
 }

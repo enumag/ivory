@@ -15,6 +15,7 @@ $examples = array(
     'selectors' => 'Selektory',
     'while' => 'While cyklus',
     'map' => 'Pole',
+    'include' => 'Vkládání souborů',
 );
 ?>
 <!DOCTYPE html>

@@ -121,6 +121,19 @@ class Parser {
     }
 
     /**
+     * Vyhození chyby
+     *
+     * @param string
+     * @param int
+     * @return void
+     */
+    protected function throwError($message, $line) {
+        $exception = new Exception($message);
+        $exception->setLine($line);
+        throw $exception;
+    }
+
+    /**
      * Parsování řetězce (obvykle obsah souboru)
      *
      * @param string
@@ -136,13 +149,13 @@ class Parser {
         while ($this->parseNext());
 
         if ($this->getOffset() <> strlen($this->buffer)) {
-            $line = $this->getLine($this->maxOffset);
             //throw new ParseException("Chyba parsování " . ($this->file ? "v souboru '$this->file' " : "") . "na řádce $line");
-            throw new ParseException("Chyba parsování na řádce $line");
+            //throw new ParseException("Chyba parsování na řádce $line");
+            $this->throwError("Chyba parsování", $this->getLine($this->maxOffset));
         }
 
         if (!$this->getActualBlock() instanceof Main) {
-            throw new ParseException("Neuzavřený blok");
+            $this->throwError("Neuzavřený blok", $this->getLine($this->maxOffset));
         }
 
         return $this->getActualBlock();
@@ -704,7 +717,8 @@ class Parser {
                 }
             }
             if (array_key_exists($name, $args)) {
-                throw new ParseException("Opakování názvu parametru '$name'");
+                //throw new ParseException("Opakování názvu parametru '$name'");
+                $this->throwError("Opakování názvu parametru '$name'", $line);
             }
             //číslo řádky musí probublat kvůli možné chybě ve výchozí hodnotě parametru, viz Compiler::callMixin()
             $args[$name] = array($value, $line);
