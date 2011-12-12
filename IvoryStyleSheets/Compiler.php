@@ -787,7 +787,11 @@ class Compiler {
                     foreach ($value as $key => $item) {
                         $value[$key] = $this->reduceValue($item);
                     }
-                    array_unshift($value, $type);
+                    if ($type == 'args' && count($type) == 1) {
+                        $value = $value[0];
+                    } else {
+                        array_unshift($value, $type);
+                    }
                     break 2;
                 case 'expression':
                     $value = $this->evaluateExpression($value);
