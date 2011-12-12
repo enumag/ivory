@@ -800,6 +800,8 @@ class Parser {
         $next = TRUE;
         $expr = array('expression');
 
+        $x = $this->getOffset();
+
         while (TRUE) {
             $offset = $this->getOffset();
             if ($next && $this->unaryOperator($value)) {
