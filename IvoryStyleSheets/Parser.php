@@ -1117,7 +1117,7 @@ class Parser {
             if ($match[0] == '"') {
                 $match = "'" . strtr(substr($match, 1, -1), array('\\"' => '"', '\'' => '\\\'', '\\' => '\\\\')) . "'";
                 if (!preg_match('/^' . static::RE_STRING . '$/D', $match)) {
-                    throw new ParseException("Chyba při parsování double-quoted řetězce");
+                    throw new \Exception("Chyba při parsování double-quoted řetězce");
                 }
             }
             $string = array('string', $match);
