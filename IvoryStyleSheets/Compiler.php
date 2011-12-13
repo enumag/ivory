@@ -437,7 +437,6 @@ class Compiler {
                     $this->saveVariable($variable[0], $this->reduceValue($variable[1]));
                 } catch (Exception $e) {
                     throw $e->setLine(end($variable));
-                    //$this->throwError($e->getMessage(), end($variable));
                 }
             }
         }
@@ -496,7 +495,6 @@ class Compiler {
                 }
             } catch (Exception $e) {
                 throw $e->setLine(end($property));
-                //$this->throwError($e->getMessage(), end($property));
             }
         }
         
@@ -588,7 +586,6 @@ class Compiler {
                 }
             } catch (Exception $e) {
                 throw $e->seLine($block->statement['line']);
-                //$this->throwError($e->getMessage(), $block->statement['line']);
             }
         } else {
             //bez řídících struktur

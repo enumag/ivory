@@ -14,6 +14,16 @@ namespace Ivory\StyleSheets;
 class Exception extends \Exception {
 
     /**
+     * Konstruktor
+     *
+     * @return void
+     */
+    public function __construct() {
+        call_user_func_array('parent::__construct', func_get_args());
+        $this->setFile('unknown');
+    }
+
+    /**
      * Nastaví řádek
      *
      * @param int

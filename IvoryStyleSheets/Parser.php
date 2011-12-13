@@ -522,7 +522,7 @@ class Parser {
                 $this->expression($path) &&
                 ($this->mediaQueries($media) || TRUE) && //nepovinné
                 $this->end()) {
-            $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'include', $path, $media);
+            $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'include', $path, $media, $this->getLine($x));
             return TRUE;
         }
         $this->setOffset($x);
