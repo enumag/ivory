@@ -356,7 +356,7 @@ class Compiler {
             case 'raw':
                 return $value[1];
             default:
-                throw new \Exception(var_export($value));
+                throw new \Exception("Neimplementováno");
         }
     }
 
@@ -862,8 +862,7 @@ class Compiler {
                     $value[1] = $elements;
                     break 2;
                 default:
-                    throw new \Exception;
-                    //TODO
+                    throw new \Exception("Neimplementováno");
                     break;
             }
         }
@@ -932,12 +931,12 @@ class Compiler {
         foreach ($postfix as $symbol) {
             if ($symbol[0] == 'unary' && array_key_exists($symbol[1], self::$unaryOperators)) {
                 if (count($stack) < 1) {
-                    throw new Exception("Nedostatek operandů");
+                    throw new Exception("Nedostatek operandů pro unární operátor '$symbol[1]'");
                 }
                 array_push($stack, $this->evaluateUnaryOperation($symbol[1], array_pop($stack)));
             } elseif ($symbol[0] == 'binary' && array_key_exists($symbol[1], self::$binaryOperators)) {
                 if (count($stack) < 2) {
-                    throw new Exception("Nedostatek operandů");
+                    throw new Exception("Nedostatek operandů pro binární operátor '$symbol[1]'");
                 }
                 $value2 = array_pop($stack);
                 array_push($stack, $this->evaluateBinaryOperation($symbol[1], array_pop($stack), $value2));
