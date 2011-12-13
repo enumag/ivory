@@ -647,7 +647,7 @@ class Compiler {
         $list = $this->valueToArgs($value);
         $mixin = $this->mixins[$name];
         $args = array();
-        $args[] = array('_argc', array('unit', count($list)));
+        $args[] = array('_argc', array('unit', count($list), ''));
         $args[] = array('_argv', $value);
         foreach ($mixin->args as $key => $default) {
             //$default[0] - výchozí hodnota
@@ -822,7 +822,7 @@ class Compiler {
      */
     protected function indexToValue($key) {
         if (is_int($key) || is_float($key)) {
-            return array('unit', $key);
+            return array('unit', $key, '');
         } elseif (is_string($key)) {
             return array('string', $key);
         }
