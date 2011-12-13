@@ -24,14 +24,20 @@ class Mixin extends Block {
     public $args;
 
     /**
-     * @param Block
+     * @var int
+     */
+    public $line;
+
+    /**
      * @param string
      * @param array
+     * @param int
      */
-    public function __construct($name, array $args) {
+    public function __construct($name, array $args, $line) {
         parent::__construct();
         $this->name = $name;
         $this->args = $args;
+        $this->line = $line;
     }
 
 }

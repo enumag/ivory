@@ -96,6 +96,13 @@ class Compiler {
     );
     
     /**
+     * Výchozí jednotka
+     *
+     * @var string
+     */
+    protected $defaultUnit;
+
+    /**
      * Použité soubory
      *
      * @var array
@@ -129,6 +136,7 @@ class Compiler {
      * @return void
      */
     public function __construct() {
+        $this->defaultUnit = '';
         $this->files = array();
         $this->includePaths = array();
         $this->functions = array();
@@ -154,6 +162,19 @@ class Compiler {
                     return array('raw', strtr(substr($value[1], 1, -1), array('\\\\' => '\\', '\\\'' => '\'')));
                 }
             });
+    }
+
+    /**
+     * Nastaví výchozí jednotku
+     *
+     * @param string
+     * @return void
+     */
+    public function setDefaultUnit($unit) {
+        if (!in_array($unit, self::$units) || $unit == '#') {
+            throw new \Exception("Chybná výchozí jednotka '$unit'");
+        }
+        $this->defaultUnit = $unit;
     }
 
     /**
@@ -327,18 +348,32 @@ class Compiler {
     }
 
     /**
-     * Kompiluje hodnotu na výstup
-     *
-     * @todo
+     * Zkompiluje jednotku na výstup
      *
      * @param array
      * @return string
      */
-    protected function compileValue($value) {
+    protected function compileUnit(array $unit) {
+        if ($unit[1] == 0 || $unit[2] == '#') {
+            return;
+        } elseif ($unit[2] == '') {
+            return $this->defaultUnit;
+        } else {
+            return $unit[2];
+        }
+    }
+
+    /**
+     * Kompiluje hodnotu na výstup
+     *
+     * @param array
+     * @return string
+     */
+    protected function compileValue(array $value) {
         switch ($value[0]) {
             case 'unit':
                 $number = ltrim(round($value[1], 3), '0');
-                return ($number == '' ? 0 : $number) . (isset($value[2]) && $value[1] <> 0 ? $value[2] : NULL);
+                return ($number == '' ? 0 : $number) . $this->compileUnit($value);
             case 'args':
                 array_shift($value);
                 return implode(', ', array_map(array($this, 'compileValue'), $value));
@@ -455,8 +490,8 @@ class Compiler {
         }
 
         foreach ($block->properties as $property) {
-            try {
-                if (is_array($property)) {
+            if (is_array($property)) {
+                try {
                     if ($property[0] == static::$prefixes['variable']) {
                         if (count($property) == 5) {//zápis do pole
                             $this->saveToMap($property[1], $this->valueToIndex($property[4]), $this->reduceValue($property[2]));
@@ -483,20 +518,22 @@ class Compiler {
                     } else {
                         throw new \Exception("Neimplementováno");
                     }
-                } elseif (!$reduced instanceof AtRule && $property instanceof NestedRule) {
-                    $this->callBlock($property, $selectors);
-                } elseif (!$reduced instanceof AtRule && $property instanceof Mixin) {
-                    if (array_key_exists($property->name, $this->mixins)) {
-                        throw new Exception("Mixin '$name' již existuje");
-                    }
-                    $this->mixins[$property->name] = $property;
-                } elseif ($property instanceof FontFace) {
-                    $this->reduceBlock($property);
-                } else {
-                    throw new \Exception("Neimplementováno");
+                } catch (Exception $e) {
+                    throw $e->setLine((string) end($property));
                 }
-            } catch (Exception $e) {
-                throw $e->setLine(end($property));
+            } elseif (!$reduced instanceof AtRule && $property instanceof NestedRule) {
+                $this->callBlock($property, $selectors);
+            } elseif (!$reduced instanceof AtRule && $property instanceof Mixin) {
+                if (array_key_exists($property->name, $this->mixins)) {
+                    $e = new Exception("Mixin '$property->name' již existuje");
+                    $e->setLine($property->line);
+                    throw $e;
+                }
+                $this->mixins[$property->name] = $property;
+            } elseif ($property instanceof FontFace) {
+                $this->reduceBlock($property);
+            } else {
+                throw new \Exception("Neimplementováno");
             }
         }
         
@@ -878,7 +915,7 @@ class Compiler {
      * @return bool
      */
     protected function isInteger(array $value) {
-        return $value[0] == 'unit' && (count($value) <= 2 || $value[2] === NULL);
+        return $value[0] == 'unit' && ($value[2] == '' || $value[2] == '#');
     }
 
     /**
@@ -958,15 +995,13 @@ class Compiler {
      *
      * @param array
      * @param array
-     * @return string|NULL
+     * @return string
      */
     protected function getUnit($value1, $value2) {
-        if (isset($value1[2])) {
-            return $value1[2];
-        } elseif (isset($value2[2])) {
-            return $value2[2];
+        if (!$this->isInteger($value1) && !$this->isInteger($value2)) {
+            throw new Exception("Nelze provádět operaci s jednotkami '$value1[2]' a '$value2[2]'");
         }
-        return NULL;
+        return $value1[2] != '' ? $value1[2] : $value2[2];
     }
 
     /**
@@ -1031,12 +1066,12 @@ class Compiler {
         } elseif ($operator == '.' && $value1[0] == 'raw' && $value2[0] == 'string') {
             return array('string', '\'' . strtr($value1[1], array('\'' => '\\\'', '\\' => '\\\\')) . substr($value2[1], 1, -1) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'unit') {
-            return array('string', '\'' . substr($value1[1], 1, -1) . $value2[1] . (isset($value2[2]) ? $value2[2] : NULL) . '\'');
+            return array('string', '\'' . substr($value1[1], 1, -1) . $value2[1] . $this->compileUnit($value2) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'unit' && $value2[0] == 'string') {
-            return array('string', '\'' . $value1[1] . (isset($value1[2]) ? $value1[2] : NULL) . substr($value2[1], 1, -1) . '\'');
+            return array('string', '\'' . $value1[1] . $this->compileUnit($value1) . substr($value2[1], 1, -1) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'string') {
             return array('string', '\'' . substr($value1[1], 1, -1) . substr($value2[1], 1, -1) . '\'');
-        } elseif (array_key_exists($operator, self::$binaryOperators) && $value1[0] == 'unit' && $value2[0] == 'unit' && (!isset($value1[2]) || !isset($value2[2]) || $value1[2] == $value2[2])) {
+        } elseif (array_key_exists($operator, self::$binaryOperators) && $value1[0] == 'unit' && $value2[0] == 'unit') {
             $answer = array();
             switch ($operator) {
                 case '*':
@@ -1069,7 +1104,7 @@ class Compiler {
                     break;
                 case '.':
                     $answer[] = 'string';
-                    $answer[] = '\'' . $value1[1] . (isset($value1[2]) ? $value1[2] : NULL) . $value2[1] . (isset($value2[2]) ? $value2[2] : NULL) . '\'';
+                    $answer[] = '\'' . $value1[1] . $this->compileUnit($value1) . $value2[1] . $this->compileUnit($value2) . '\'';
                     break;
                 case '=':
                     $answer[] = 'bool';

@@ -459,7 +459,7 @@ class Parser {
      * @return bool
      */
     protected function mixinBegin() {
-        //TODO nesmíme být ani uvnitř speciálního bloku (@font-face, @media)
+        $x = $this->getOffset();
         if ($this->getActualBlock() instanceof Main &&
                 $this->char(Compiler::$prefixes['mixin']) &&
                 $this->name($name) &&
@@ -467,7 +467,7 @@ class Parser {
                 $this->arguments($args) &&
                 $this->char(')') &&
                 $this->char('{')) {
-            $mixin = new Mixin($name, $args);
+            $mixin = new Mixin($name, $args, $x);
             $this->getActualBlock()->properties[] = $mixin;
             $this->stack->push($mixin);
             return TRUE;
@@ -928,15 +928,16 @@ class Parser {
      * @return bool
      */
     protected function unit(&$unit) {
-        if (!$this->match('[0-9]*\.?[0-9]+', $matches, FALSE))
+        if (!$this->match('[0-9]*\.?[0-9]+', $matches, FALSE)) {
             return FALSE;
+        }
         $unit = array('unit', $matches[0]);
         $x = $this->getOffset();
         foreach (Compiler::$units as $value) {
+            //pokud za jednotkou následuje písmeno, tak se nejedná o jednotku
             if ($this->char($value, FALSE) && preg_match('/[^a-zA-Z]/', $this->buffer[$this->getOffset()])) {
-                $this->whitespace();
                 $unit[] = $value;
-                return TRUE;
+                break;
             } else {
                 $this->setOffset($x);
             }
