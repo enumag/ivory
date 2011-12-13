@@ -1,2 +1,9 @@
-﻿- jak kešovat závislosti?
+﻿- složkové API
+- jak kešovat závislosti?
 - accessory
+- @media
+- podpora medií u @include
+- @import
+- @...
+- funkce calc
+- předdefinované funkce
