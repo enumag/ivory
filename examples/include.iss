@@ -1,2 +1,2 @@
-@include 'gradients.iss'
-@include 'modernizr.iss'
+@include 'gradients.iss';
+@include 'modernizr.iss';
