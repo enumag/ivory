@@ -99,7 +99,21 @@ class Compiler {
      * @var array
      */
     protected $files;
-    
+
+    /**
+     * Složky pro hledání souborů
+     *
+     * @var array
+     */
+    protected $includePaths;
+
+    /**
+     * Funkce
+     *
+     * @var array
+     */
+    protected $functions;
+
     /**
      * Mixiny
      *
@@ -108,19 +122,13 @@ class Compiler {
     protected $mixins;
 
     /**
-     * Funkce
-     *
-     * @var array
-     */
-    protected $functions;
-    
-    /**
      * Konstruktor
      *
      * @return void
      */
     public function __construct() {
         $this->files = array();
+        $this->includePaths = array();
         $this->functions = array();
         $this->prepareFunctions();
     }
@@ -144,6 +152,19 @@ class Compiler {
                     return array('raw', strtr(substr($value[1], 1, -1), array('\\\\' => '\\', '\\\'' => '\'')));
                 }
             });
+    }
+
+    /**
+     * Přidá cestu
+     *
+     * @param string
+     * @return void
+     */
+    public function addIncludePath($path) {
+        $path = realpath($path);
+        if (!in_array($path, $this->includePaths)) {
+            $this->includePaths[] = $path;
+        }
     }
 
     /**
@@ -177,7 +198,7 @@ class Compiler {
     protected function callFunction($name, array $args) {
         $value = call_user_func_array($this->functions[$name], $args);
         if (!is_array($value)) {
-            throw new CompileException("Funkce '$name' nevrátila pole");
+            throw new Exception("Funkce '$name' nevrátila pole");
         }
         return $value;
     }
@@ -190,10 +211,10 @@ class Compiler {
      */
     public function compileFile($file) {
         if (!is_file($file)) {
-            throw new CompileException("Soubor '$file' nenalezen");
+            throw new Exception("Soubor '$file' nenalezen");
         }
         if (!is_readable($file)) {
-            throw new CompileException("Soubor '$file' nemohl být otevřen pro čtení");
+            throw new Exception("Soubor '$file' nemohl být otevřen pro čtení");
         }
         $this->addFile($file);
         return $this->compile(file_get_contents($file));
@@ -414,8 +435,9 @@ class Compiler {
             foreach ($variables as $variable) {
                 try {
                     $this->saveVariable($variable[0], $this->reduceValue($variable[1]));
-                } catch (CompileException $e) {
-                    $this->throwError($e->getMessage(), end($variable));
+                } catch (Exception $e) {
+                    throw $e->setLine(end($variable));
+                    //$this->throwError($e->getMessage(), end($variable));
                 }
             }
         }
@@ -447,13 +469,13 @@ class Compiler {
                             $property[0] == static::$prefixes['important'] ||
                             $property[0] == static::$prefixes['raw']) {
                         if ($reduced instanceof Main) {
-                            throw new CompileException("Vlastnost nemůže být v globálním bloku");
+                            throw new Exception("Vlastnost nemůže být v globálním bloku");
                         }
                         $reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
                     } elseif ($property[0] == static::$prefixes['special'] && $property[1] == 'include') {
                         $value = $this->reduceValue($property[2]);
                         if ($value[0] !== 'string') {
-                            throw new CompileException("Název includovaného souboru musí být řetězec");
+                            throw new Exception("Název includovaného souboru musí být řetězec");
                         }
                         $path = strtr(substr($value[1], 1, -1), array('\\\\' => '\\', '\\\'' => '\''));
                         $this->callInclude($path, $property[3]);
@@ -464,7 +486,7 @@ class Compiler {
                     $this->callBlock($property, $selectors);
                 } elseif (!$reduced instanceof AtRule && $property instanceof Mixin) {
                     if (array_key_exists($property->name, $this->mixins)) {
-                        throw new CompileException("Mixin '$name' již existuje");
+                        throw new Exception("Mixin '$name' již existuje");
                     }
                     $this->mixins[$property->name] = $property;
                 } elseif ($property instanceof FontFace) {
@@ -472,8 +494,9 @@ class Compiler {
                 } else {
                     throw new \Exception("Neimplementováno");
                 }
-            } catch (CompileException $e) {
-                $this->throwError($e->getMessage(), end($property));
+            } catch (Exception $e) {
+                throw $e->setLine(end($property));
+                //$this->throwError($e->getMessage(), end($property));
             }
         }
         
@@ -527,10 +550,10 @@ class Compiler {
                         $begin = $this->reduceValue($block->statement[2]);
                         $end = $this->reduceValue($block->statement[3]);
                         if (!$this->isInteger($begin)) {
-                            throw new CompileException("Počáteční hodnota for cyklu není číslo");
+                            throw new Exception("Počáteční hodnota for cyklu není číslo");
                         }
                         if (!$this->isInteger($end)) {
-                            throw new CompileException("Koncová hodnota for cyklu není číslo");
+                            throw new Exception("Koncová hodnota for cyklu není číslo");
                         }
                         $begin = (int) $begin[1];
                         $end = (int) $end[1];
@@ -563,8 +586,9 @@ class Compiler {
                         throw new \Exception("Neimplementováno");
                     	break;
                 }
-            } catch (CompileException $e) {
-                 $this->throwError($e->getMessage(), $block->statement['line']);
+            } catch (Exception $e) {
+                throw $e->seLine($block->statement['line']);
+                //$this->throwError($e->getMessage(), $block->statement['line']);
             }
         } else {
             //bez řídících struktur
@@ -582,7 +606,7 @@ class Compiler {
      */
     protected function callMixin($name, array $value, array $selectors) {
         if (!array_key_exists($name, $this->mixins)) {
-            throw new CompileException("Mixin '$name' není definován");
+            throw new Exception("Mixin '$name' není definován");
         }
         $list = $this->valueToArgs($value);
         $mixin = $this->mixins[$name];
@@ -607,10 +631,14 @@ class Compiler {
      * @return void
      */
     protected function callInclude($file, $media) {
-        foreach ($this->files as $included) {
-            $path = pathinfo($included, PATHINFO_DIRNAME) . '/' . $file;
-            if (pathinfo($path, PATHINFO_EXTENSION) == 'iss' && file_exists($path)) {
-                $this->addFile(realpath($path));
+        foreach ($this->includePaths as $path) {
+            $path .= DIRECTORY_SEPARATOR . $file;
+            $extension = pathinfo($file, PATHINFO_EXTENSION);
+            if (!is_file($path) || !is_readable($path)) {
+                continue;
+            } elseif ($extension == 'iss') {
+                $this->addIncludePath(pathinfo($path, PATHINFO_DIRNAME));
+                $this->addFile($path);
                 $parser = new Parser();
                 try {
                     $tree = $parser->parse(file_get_contents($this->getFile()));
@@ -618,16 +646,14 @@ class Compiler {
                     throw $e->setFile($this->getFile());
                 }
                 //media zatím zahodit, později vložit @media blok
-                // pole selektorů nesmí být prázdné
-                $this->reduceBlock($tree, array(''));
+                $this->reduceBlock($tree);
                 return;
-            } elseif (pathinfo($path, PATHINFO_EXTENSION) == 'css' && file_exists($path)) {
+            } elseif ($extension == 'css') {
                 $this->reduced[] = file_get_contents($path);
                 return;
             }
         }
-        //TODO viz kontroly v $this->compileFile
-        throw new CompileException("Soubor '$file' se nepodařilo vložit");
+        throw new Exception("Soubor '$file' se nepodařilo vložit");
     }
     
     /**
@@ -688,7 +714,7 @@ class Compiler {
             }
         }
         //TODO: vytvořit pole pokud proměnná neexistuje?
-        throw new CompileException("Pole '$name' nenalezeno");
+        throw new Exception("Pole '$name' nenalezeno");
     }
 
     /**
@@ -705,7 +731,7 @@ class Compiler {
                 }
             }
         }
-        throw new CompileException("Proměnná '$name' neexistuje");
+        throw new Exception("Proměnná '$name' neexistuje");
     }
 
     /**
@@ -722,13 +748,13 @@ class Compiler {
                     if (array_key_exists($index, $map[1])) {
                         return $map[1][$index];
                     } else {
-                        throw new CompileException("Nedefinovaný klíč '$index' v poli '$name'");
+                        throw new Exception("Nedefinovaný klíč '$index' v poli '$name'");
                     }
                 }
             }
         }
         //TODO: vytvořit pole pokud proměnná neexistuje?
-        throw new CompileException("Pole $name nenalezeno");
+        throw new Exception("Pole $name nenalezeno");
     }
 
     /**
@@ -765,17 +791,6 @@ class Compiler {
             return array('string', $key);
         }
         throw new \Exception("Neplatný index do pole");
-    }
-
-    /**
-     * Vyhození chyby
-     *
-     * @param string
-     * @param int
-     * @return void
-     */
-    protected function throwError($message, $line) {
-        throw new \Exception($message . " (" . ($this->getFile() ? $this->getFile() . ":" : "řádek ") . $line . ")");
     }
 
     /**
@@ -832,10 +847,10 @@ class Compiler {
                         $key = $this->reduceValue($item[0]);
                         $val = $this->reduceValue($item[1]);
                         if (!in_array($key[0], array('unit', 'string', 'autokey'))) {
-                            throw new CompileException("Typ $key[0] nemůže být použit jako index v poli.");
+                            throw new Exception("Typ $key[0] nemůže být použit jako index v poli.");
                         }
                         if ($key[0] == 'unit' && !$this->isInteger($key)) {
-                            throw new CompileException("Jen číslo bez jednotky může být indexem v poli.");
+                            throw new Exception("Jen číslo bez jednotky může být indexem v poli.");
                         }
                         switch ($key[0]) {
                             case 'unit':
@@ -920,12 +935,12 @@ class Compiler {
         foreach ($postfix as $symbol) {
             if ($symbol[0] == 'unary' && array_key_exists($symbol[1], self::$unaryOperators)) {
                 if (count($stack) < 1) {
-                    throw new CompileException("Nedostatek operandů");
+                    throw new Exception("Nedostatek operandů");
                 }
                 array_push($stack, $this->evaluateUnaryOperation($symbol[1], array_pop($stack)));
             } elseif ($symbol[0] == 'binary' && array_key_exists($symbol[1], self::$binaryOperators)) {
                 if (count($stack) < 2) {
-                    throw new CompileException("Nedostatek operandů");
+                    throw new Exception("Nedostatek operandů");
                 }
                 $value2 = array_pop($stack);
                 array_push($stack, $this->evaluateBinaryOperation($symbol[1], array_pop($stack), $value2));
@@ -934,7 +949,7 @@ class Compiler {
             }
         }
         if (count($stack) <> 1) {
-            throw new CompileException("Výsledkem výrazu má být pouze 1 hodnota");
+            throw new Exception("Výsledkem výrazu má být pouze 1 hodnota");
         }
 
         return array_pop($stack);
@@ -968,7 +983,7 @@ class Compiler {
         } elseif ($value[0] == 'unit') {
             return $value[1] == 0;
         }
-        throw new CompileException("Výsledkem podmínkového výrazu má být typ unit nebo bool");
+        throw new Exception("Výsledkem podmínkového výrazu má být typ unit nebo bool");
     }
 
     /**
@@ -984,7 +999,7 @@ class Compiler {
         } elseif (in_array($operator, array('+', '-'))) {
             return $this->evaluateBinaryOperation($operator, array('unit', 0), $value);
         }
-        throw new CompileException("Nepovolená operace ($operator $value[0])");
+        throw new Exception("Nepovolená operace ($operator $value[0])");
     }
 
     /**
@@ -1033,7 +1048,7 @@ class Compiler {
                     break;
                 case '/':
                     if ($value2[1] == 0) {
-                        throw new CompileException("Dělení nulou");
+                        throw new Exception("Dělení nulou");
                     }
                     $answer[] = 'unit';
                     $answer[] = $value1[1] / $value2[1];
@@ -1084,12 +1099,12 @@ class Compiler {
                     $answer[] = $value1[1] != $value2[1];
                     break;
                 default:
-                    throw new CompileException("Neznámý operátor");
+                    throw new Exception("Neznámý operátor");
                     break;
             }
             return $answer;
         }
-        throw new CompileException("Nepovolená operace ($value1[0] $operator $value2[0])");
+        throw new Exception("Nepovolená operace ($value1[0] $operator $value2[0])");
     }
     
 }
