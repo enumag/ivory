@@ -501,7 +501,7 @@ class Compiler {
         }
         
         //zrušení nejvyšší vrstvy proměnných
-        if ($variables !== NULL) {
+        if (!$block instanceof Main) {
             array_pop($this->variables);
         }
     }
