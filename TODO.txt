@@ -8,3 +8,4 @@
 - funkce calc
 - předdefinované funkce
 - vkládání proměnných z PHP
+- hlídat rekurzivní include
