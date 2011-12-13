@@ -60,12 +60,6 @@ textarea {
 </style>
 </head>
 <body>
-<?php
-$input = FALSE;
-if (isset($_GET['input']) && isset($examples[$_GET['input']])) {
-    $input = file_get_contents(__DIR__ . '/examples/' . $_GET['input'] . '.iss');
-}
-?>
 
 <h1>IvoryStyleSheets</h1>
 
@@ -83,15 +77,17 @@ foreach ($examples as $key => $value) {
 
 <textarea id="iss">
 <?php
-if ($input) {
-    echo $input;
+if (isset($_POST['iss'])) {
+    echo $_POST['iss'];
+} else {
+    echo file_get_contents(__DIR__ . '/examples/' . $_GET['input'] . '.iss');
 }
 ?>
 </textarea>
 <input type="submit" value="compile" id="submit">
 <textarea id="css">
 <?php
-if ($input) {
+if (isset($_GET['input'])) {
     require './compile.php';
 }
 ?>

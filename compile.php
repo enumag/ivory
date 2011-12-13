@@ -10,18 +10,18 @@ function __autoload($class) {
     }
 }
 
-if (isset($_POST['iss'])) {
-    $input = $_POST['iss'];
-}
-
 $ivory = new \Ivory\StyleSheets\Compiler();
 try {
-    $output = $ivory->compileString($input);
+    if (isset($_POST['iss'])) {
+        $ivory->addIncludePath(__DIR__ . '/examples');
+        $output = $ivory->compileString($_POST['iss']);
+    } else {
+        $output = $ivory->compileFile(__DIR__ . '/examples/' . $_GET['input'] . '.iss');
+    }
     if (is_string($output))
         echo($output);
     else
         var_dump($output);
-} catch(Exception $ex) {
-    echo $ex->getFile() . ':' . $ex->getLine() . ' ' . $ex->getMessage();
-    throw $ex;
+} catch(\Ivory\StyleSheets\Exception $e) {
+    echo $e->getMessage() . ' (' . ($e->getFile() ? $e->getFile() . ':' : 'řádek ') . $e->getLine() . ')';
 }
