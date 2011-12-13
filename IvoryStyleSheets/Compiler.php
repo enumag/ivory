@@ -70,12 +70,14 @@ class Compiler {
      * @var array
      */
     static public $units = array(
-            'em', 'ex', 'px', 'gd', 'rem', 'vw', 'vh', 'vm', 'ch', // Relative length units
-            'in', 'cm', 'mm', 'pt', 'pc', // Absolute length units
-            '%', // Percentages
-            'deg', 'grad', 'rad', 'turn', // Angles
-            'ms', 's', // Times
-            'Hz', 'kHz', //Frequencies
+            'em', 'ex', 'px', 'gd', 'rem', 'vw', 'vh', 'vm', 'ch', // relativní jednotky délky
+            'in', 'cm', 'mm', 'pt', 'pc', // absolutní jednotky délky
+            '%', // procenta
+            'deg', 'grad', 'rad', 'turn', // úhel
+            'ms', 's', // čas
+            'Hz', 'kHz', //frekvence
+            '#', // číslo
+            '', // výchozí jednotka
     );
     
     /**
