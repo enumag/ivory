@@ -516,12 +516,11 @@ class Parser {
      * @return bool
      */
     protected function atInclude() {
-        return FALSE;
         $x = $this->getOffset();
         if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
                 $this->char('@include') &&
                 $this->expression($path) &&
-                ($this->mediaQueries($media) || $media = '') && //nepovinné
+                ($this->mediaQueries($media) || TRUE) && //nepovinné
                 $this->end()) {
             $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'include', $path, $media);
             return TRUE;
@@ -536,11 +535,12 @@ class Parser {
      * @param NULL
      * @return bool
      */
-    protected function mediaQueries($media) {
+    protected function mediaQueries(&$media) {
         if ($this->match('[^{;]+', $matches)) {
             $media = $matches[0];
             return TRUE;
         }
+        $media = '';
         return FALSE;
     }
 
