@@ -1,7 +1,5 @@
 ﻿- jak kešovat závislosti?
 - bude při include vadit Main?
-- otestovat include
 - možnost nastavení defaultní jednotky
 - jednotka #, výchozí jednotka
 - accessory
-- zobrazovat název souboru při chybě parseru
