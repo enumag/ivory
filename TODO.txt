@@ -1,5 +1,2 @@
 ﻿- jak kešovat závislosti?
-- bude při include vadit Main?
-- možnost nastavení defaultní jednotky
-- jednotka #, výchozí jednotka
 - accessory
