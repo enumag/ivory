@@ -21,6 +21,7 @@ class Exception extends \Exception {
     public function __construct() {
         call_user_func_array('parent::__construct', func_get_args());
         $this->setFile('unknown');
+        $this->line = 'unknown';
     }
 
     /**
@@ -30,6 +31,10 @@ class Exception extends \Exception {
      * @return Ivory\StyleSheets\Exception
      */
     public function setLine($line) {
+        if (!ctype_digit((string) $line)) {
+            var_export($line);
+            throw new \Exception();
+        }
         $this->line = $line;
         return $this;
     }
