@@ -11,10 +11,4 @@ namespace Ivory\StyleSheets;
 /**
  * @author Jáchym Toušek
  */
-class FontFace extends AtRule {
-
-    public function __construct() {
-        parent::__construct();
-    }
-
-}
+class FontFace extends AtRule {}

@@ -11,10 +11,4 @@ namespace Ivory\StyleSheets;
 /**
  * @author Jáchym Toušek
  */
-class Main extends Block {
-
-    public function __construct() {
-        parent::__construct();
-    }
-
-}
+class Main extends Block {}

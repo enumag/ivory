@@ -18,6 +18,9 @@ abstract class Block {
      */
     public $properties;
 
+    /**
+     * @return void
+     */
     public function __construct() {
         $this->properties = array();
     }

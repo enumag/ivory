@@ -20,8 +20,7 @@ class Rule extends Block {
 
     /**
      * @param array
-     * @param array
-     * @param array
+     * @return void
      */
     public function __construct(array $selectors) {
         parent::__construct();

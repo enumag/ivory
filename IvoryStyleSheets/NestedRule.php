@@ -27,6 +27,7 @@ class NestedRule extends Rule {
      * @param array
      * @param array
      * @param array
+     * @return void
      */
     public function __construct(array $selectors = array(''), array $prefixes = array(''), array $statement = NULL) {
         parent::__construct($selectors);
