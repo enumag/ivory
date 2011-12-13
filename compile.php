@@ -11,6 +11,7 @@ function __autoload($class) {
 }
 
 $ivory = new \Ivory\StyleSheets\Compiler();
+$ivory->setDefaultUnit('px');
 try {
     if (isset($_POST['iss'])) {
         $ivory->addIncludePath(__DIR__ . '/examples');
