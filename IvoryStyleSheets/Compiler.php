@@ -181,7 +181,7 @@ class Compiler {
             });
         $this->addFunction('raw', function (array $value) {
                 if (isset($value[0]) && $value[0] == 'string') {
-                    return array('raw', strtr(substr($value[1], 1, -1), array('\\\\' => '\\', '\\\'' => '\'')));
+                    return array('raw', $this->stringDecode($value[1]));
                 }
             });
     }
@@ -257,8 +257,8 @@ class Compiler {
     public function compileFile($file) {
         $pathinfo = pathinfo($file);
         $this->addIncludePath($pathinfo['dirname']);
-        $file = strtr($pathinfo['basename'], array('\'' => '\\\'', '\\' => '\\\\'));
-        $output = $this->compileString('@include \'' . $file . '\';');
+        $file = $this->stringEncode($pathinfo['basename']);
+        $output = $this->compileString('@include ' . $file . ';');
         if ($this->outputDirectory) {
             $outputFile = $this->outputDirectory . DIRECTORY_SEPARATOR . $pathinfo['filename'] . '.css';
             if (!file_put_contents($outputFile, $output)) {
@@ -329,7 +329,7 @@ class Compiler {
                         $value .= ' !important';
                     } elseif ($property[0] == static::$prefixes['raw']) {
                         if ($property[2][0] == 'string') {
-                            $value = strtr(substr($value, 1, -1), array('\\\\' => '\\', '\\\'' => '\''));
+                            $value = $this->stringDecode($value);
                         }
                     }
                     echo $property[1] . ': ' . $value . ';' . static::NL;
@@ -377,6 +377,26 @@ class Compiler {
      */
     protected function removeFile() {
         return $this->files->pop();
+    }
+
+    /**
+     * Zakóduje řetězec
+     *
+     * @param string
+     * @return string
+     */
+    protected function stringEncode($string) {
+        return '\'' . strtr($string, array('\'' => '\\\'', '\\' => '\\\\')) . '\'';
+    }
+
+    /**
+     * Dekóduje řetězec
+     *
+     * @param string
+     * @return string
+     */
+    protected function stringDecode($string) {
+        return strtr(substr($string, 1, -1), array('\\\\' => '\\', '\\\'' => '\''));
     }
 
     /**
@@ -545,7 +565,7 @@ class Compiler {
                         if ($value[0] !== 'string') {
                             throw new Exception("Název includovaného souboru musí být řetězec");
                         }
-                        $path = strtr(substr($value[1], 1, -1), array('\\\\' => '\\', '\\\'' => '\''));
+                        $path = $this->stringDecode($value[1]);
                         $this->callInclude($path, $property[3]);
                     } else {
                         throw new \Exception("Neimplementováno");
@@ -1093,9 +1113,9 @@ class Compiler {
             }
             return $answer;
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'raw') {
-            return array('string', '\'' . substr($value1[1], 1, -1) . strtr($value2[1], array('\'' => '\\\'', '\\' => '\\\\')) . '\'');
+            return array('string', '\'' . substr($value2[1], 1, -1) . substr($this->stringEncode($value2[1]), 1);
         } elseif ($operator == '.' && $value1[0] == 'raw' && $value2[0] == 'string') {
-            return array('string', '\'' . strtr($value1[1], array('\'' => '\\\'', '\\' => '\\\\')) . substr($value2[1], 1, -1) . '\'');
+            return array('string', substr($this->stringEncode($value1[1]), 0, -1) . substr($value2[1], 1, -1) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'unit') {
             return array('string', '\'' . substr($value1[1], 1, -1) . $value2[1] . $this->compileUnit($value2) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'unit' && $value2[0] == 'string') {

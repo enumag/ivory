@@ -8,4 +8,3 @@
 - funkce calc
 - předdefinované funkce
 - vkládání proměnných z PHP
-- strtr nahradit funkcemi
