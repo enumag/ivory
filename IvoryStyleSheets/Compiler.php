@@ -181,7 +181,8 @@ class Compiler {
             });
         $this->addFunction('raw', function (array $value) {
                 if (isset($value[0]) && $value[0] == 'string') {
-                    return array('raw', $this->stringDecode($value[1]));
+                    //PHP 5.4: return array('raw', $this->stringDecode($value[1]));
+                    return array('raw', strtr($value[1], array('\\\\' => '\\', '\\\'' => '\'')));
                 }
             });
     }
@@ -451,6 +452,8 @@ class Compiler {
 
     /**
      * Nahradí proměnné v selektorech jejich hodnotou
+     *
+     * @todo PHP 5.4
      *
      * @param array
      * @return array
