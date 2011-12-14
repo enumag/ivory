@@ -335,7 +335,11 @@ class Compiler {
      * @return void
      */
     protected function addFile($file) {
-        $this->files[] = realpath($file);
+        $path = realpath($file);
+        if (in_array($path, $this->files)) {
+            throw new Exception("Rekurzivní vkládání souboru '$file'");
+        }
+        $this->files[] = $path;
     }
 
     /**
