@@ -94,7 +94,21 @@ class Compiler {
             //+
             'none' => '', //žádný prefix
     );
-    
+
+    /**
+     * Složka pro výstup
+     *
+     * @var string
+     */
+    public $outputDirectory;
+
+    /**
+     * Soubor pro uložení cache
+     *
+     * @var string
+     */
+    public $cacheFile;
+
     /**
      * Výchozí jednotka
      *
@@ -103,11 +117,18 @@ class Compiler {
     protected $defaultUnit;
 
     /**
-     * Použité soubory
+     * Zásobník souborů
+     *
+     * @var Stack
+     */
+    protected $files;
+
+    /**
+     * Všechny vložené soubory
      *
      * @var array
      */
-    protected $files;
+    protected $allFiles;
 
     /**
      * Složky pro hledání souborů
@@ -137,7 +158,8 @@ class Compiler {
      */
     public function __construct() {
         $this->defaultUnit = '';
-        $this->files = array();
+        $this->files = new Stack;
+        $this->allFiles = array();
         $this->includePaths = array();
         $this->functions = array();
         $this->prepareFunctions();
@@ -233,14 +255,19 @@ class Compiler {
      * @return string
      */
     public function compileFile($file) {
-        if (!is_file($file)) {
-            throw new Exception("Soubor '$file' nenalezen");
+        $pathinfo = pathinfo($file);
+        $this->addIncludePath($pathinfo['dirname']);
+        $file = strtr($pathinfo['basename'], array('\'' => '\\\'', '\\' => '\\\\'));
+        $output = $this->compileString('@include \'' . $file . '\';');
+        if ($this->outputDirectory) {
+            $outputFile = $this->outputDirectory . DIRECTORY_SEPARATOR . $pathinfo['filename'] . '.css';
+            if (!file_put_contents($outputFile, $output)) {
+                throw new \Exception("Nepodařilo se zapsat do souboru '$outputFile'");
+            }
+            //TODO: kešovat $this->allFiles, injectované proměnné
+            //porovnat časy souborů z $allFiles s $outputFile (pokud existuje)
         }
-        if (!is_readable($file)) {
-            throw new Exception("Soubor '$file' nemohl být otevřen pro čtení");
-        }
-        $this->addFile($file);
-        return $this->compile(file_get_contents($file));
+        return $output;
     }
 
     /**
@@ -264,12 +291,12 @@ class Compiler {
         setlocale(LC_NUMERIC, "C");
 
         $parser = new Parser;
-        try {
-            $tree = $parser->parse($input);
-        } catch (Exception $e) {
-            throw $e->setFile($this->getFile());
-        }
+        $tree = $parser->parse($input);
         
+        //prázdný zásobník
+        $this->files->clear();
+        $this->allFiles = array();
+
         //inicializace prázdných polí
         $this->mixins = array();
         $this->reduced = array();
@@ -325,7 +352,7 @@ class Compiler {
      * @return string
      */
     protected function getFile() {
-        return (string) end($this->files);
+        return $this->files->isEmpty() ? 'unknown' : $this->files->top();
     }
 
     /**
@@ -336,10 +363,11 @@ class Compiler {
      */
     protected function addFile($file) {
         $path = realpath($file);
-        if (in_array($path, $this->files)) {
+        if ($this->files->contains($path)) {
             throw new Exception("Rekurzivní vkládání souboru '$file'");
         }
-        $this->files[] = $path;
+        $this->allFiles[] = $path;
+        $this->files->push($path);
     }
 
     /**
@@ -348,7 +376,7 @@ class Compiler {
      * @return string
      */
     protected function removeFile() {
-        return array_pop($this->files);
+        return $this->files->pop();
     }
 
     /**
