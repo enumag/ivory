@@ -1113,7 +1113,7 @@ class Compiler {
             }
             return $answer;
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'raw') {
-            return array('string', '\'' . substr($value2[1], 1, -1) . substr($this->stringEncode($value2[1]), 1);
+            return array('string', '\'' . substr($value2[1], 1, -1) . substr($this->stringEncode($value2[1]), 1));
         } elseif ($operator == '.' && $value1[0] == 'raw' && $value2[0] == 'string') {
             return array('string', substr($this->stringEncode($value1[1]), 0, -1) . substr($value2[1], 1, -1) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'unit') {
