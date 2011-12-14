@@ -705,7 +705,6 @@ class Compiler {
             if (!is_file($path) || !is_readable($path)) {
                 continue;
             } elseif ($extension == 'iss') {
-                $this->addIncludePath(pathinfo($path, PATHINFO_DIRNAME));
                 $this->addFile($path);
                 $parser = new Parser();
                 try {
