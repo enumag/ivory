@@ -414,22 +414,6 @@ class Compiler {
     }
 
     /**
-     * Zkompiluje jednotku na výstup
-     *
-     * @param array
-     * @return string
-     */
-    protected function compileUnit(array $unit) {
-        if ($unit[1] == 0 || $unit[2] == '#') {
-            return;
-        } elseif ($unit[2] == '') {
-            return $this->defaultUnit;
-        } else {
-            return $unit[2];
-        }
-    }
-
-    /**
      * Kompiluje hodnotu na výstup
      *
      * @param array
@@ -460,6 +444,22 @@ class Compiler {
                 return $value[1];
             default:
                 throw new \Exception("Neimplementováno");
+        }
+    }
+
+    /**
+     * Zkompiluje jednotku na výstup
+     *
+     * @param array
+     * @return string
+     */
+    protected function compileUnit(array $unit) {
+        if ($unit[1] == 0 || $unit[2] == '#') {
+            return;
+        } elseif ($unit[2] == '') {
+            return $this->defaultUnit;
+        } else {
+            return $unit[2];
         }
     }
 
@@ -749,8 +749,6 @@ class Compiler {
         $args[] = array('_argc', array('unit', count($list), ''));
         $args[] = array('_argv', $value);
         foreach ($mixin->args as $key => $default) {
-            //$default[0] - výchozí hodnota
-            //$default[1] - číslo řádku
             $args[] = array($key, count($list) > 0 ? array_shift($list) : ($default[0] === NULL ? array('bool', FALSE) : $default[0]), $default[1]);
         }
         $this->reduceBlock($mixin, $selectors, $args);
@@ -1042,65 +1040,60 @@ class Compiler {
 
         //převod výrazu do postfixové notace
         $postfix = array();
-        $stack = array();
+        $stack = new Stack();
         foreach ($expr as $symbol) {
             if ($symbol == '(') {
-                array_push($stack, $symbol);
+                $stack->push($symbol);
             } elseif ($symbol == ')') {
-                while ($top = array_pop($stack)) {
+                while ($top = $stack->pop()) {
                     if ($top == '(') {
                         break;
                     }
                     $postfix[] = $top;
                 }
             } elseif ($symbol[0] == 'binary' && array_key_exists($symbol[1], self::$binaryOperators)) {
-                if (count($stack) == 0) {
-                    array_push($stack, $symbol);
+                if ($stack->count() == 0) {
+                    $stack->push($symbol);
                     continue;
                 }
-                $top = end($stack);
-                if ($top == '(' || self::$binaryOperators[$symbol[1]] > self::$binaryOperators[$top[1]]) {
-                    array_push($stack, $symbol);
-                } else {
-                    while ($top != '(' && count($stack) > 0 && self::$binaryOperators[$symbol[1]] <= self::$binaryOperators[$top[1]]) {
-                        $postfix[] = array_pop($stack);
-                        $top = end($stack);
-                    }
-                    array_push($stack, $symbol);
+                $top = $stack->top();
+                while ($top != '(' && $stack->count() > 0 && self::$binaryOperators[$symbol[1]] <= self::$binaryOperators[$top[1]]) {
+                    $postfix[] = $stack->pop();
+                    $top = $stack->top();
                 }
+                $stack->push($symbol);
             } elseif ($symbol[0] == 'unary' && array_key_exists($symbol[1], self::$unaryOperators)) {
-                array_push($stack, $symbol);
+                $stack->push($symbol);
             } else {
                 $postfix[] = $this->reduceValue($symbol);
             }
         }
-        while (count($stack) > 0) {
-            $postfix[] = array_pop($stack);
+        while ($stack->count() > 0) {
+            $postfix[] = $stack->pop();
         }
 
         //vyhodnocení výrazu
-        $stack = array();
+        $stack->clear();
         foreach ($postfix as $symbol) {
             if ($symbol[0] == 'unary' && array_key_exists($symbol[1], self::$unaryOperators)) {
-                if (count($stack) < 1) {
+                if ($stack->count() < 1) {
                     throw new Exception("Nedostatek operandů pro unární operátor '$symbol[1]'");
                 }
-                array_push($stack, $this->evaluateUnaryOperation($symbol[1], array_pop($stack)));
+                $symbol = $this->evaluateUnaryOperation($symbol[1], $stack->pop());
             } elseif ($symbol[0] == 'binary' && array_key_exists($symbol[1], self::$binaryOperators)) {
-                if (count($stack) < 2) {
+                if ($stack->count() < 2) {
                     throw new Exception("Nedostatek operandů pro binární operátor '$symbol[1]'");
                 }
-                $value2 = array_pop($stack);
-                array_push($stack, $this->evaluateBinaryOperation($symbol[1], array_pop($stack), $value2));
-            } else {
-                array_push($stack, $symbol);
+                $value2 = $stack->pop();
+                $symbol = $this->evaluateBinaryOperation($symbol[1], $stack->pop(), $value2);
             }
+            $stack->push($symbol);
         }
-        if (count($stack) <> 1) {
+        if ($stack->count() <> 1) {
             throw new Exception("Výsledkem výrazu má být pouze 1 hodnota");
         }
 
-        return array_pop($stack);
+        return $stack->pop();
     }
 
     /**
