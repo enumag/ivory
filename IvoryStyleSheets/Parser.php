@@ -1187,9 +1187,8 @@ class Parser {
         );
 
         $out = '';
-        $min = NULL;
-        $done = FALSE;
         while (TRUE) {
+            $min = NULL;
             foreach ($look as $token) {
                 $pos = strpos($text, $token);
                 if ($pos !== FALSE && (!isset($min) || $pos < $min[1])) {
@@ -1233,8 +1232,6 @@ class Parser {
 
             $out .= substr($text, 0, $count) . str_repeat("\n", $newlines);
             $text = substr($text, $count + $skip);
-
-            $min = NULL;
         }
 
         return $out . $text;
