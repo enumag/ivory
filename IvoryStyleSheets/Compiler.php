@@ -559,7 +559,7 @@ class Compiler {
                     } elseif ($property[0] == static::$prefixes['none'] ||
                             $property[0] == static::$prefixes['important'] ||
                             $property[0] == static::$prefixes['raw']) {
-                        if ($reduced instanceof Main || $selectors == array('')) {
+                        if ($reduced instanceof Main || ($reduced instanceof Rule && $selectors == array(''))) {
                             throw new Exception("Vlastnost nemůže být v globálním bloku");
                         }
                         $reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
