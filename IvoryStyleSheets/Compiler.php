@@ -554,7 +554,7 @@ class Compiler {
                             $this->saveVariable($property[1], $this->reduceValue($property[2]));
                         }
                     } elseif ($property[0] == static::$prefixes['mixin']) {
-                        //TODO: volat $this->reduceValue($property[2]) ?
+                        //TODO: volat $this->reduceValue($property[2]) ? kvůli možnému použití v calc asi ne
                         $this->callMixin($property[1], $property[2], $selectors);
                     } elseif ($property[0] == static::$prefixes['none'] ||
                             $property[0] == static::$prefixes['important'] ||
