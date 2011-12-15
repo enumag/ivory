@@ -17,6 +17,7 @@ $examples = array(
     'map' => 'Pole',
     'include' => 'Vkládání souborů',
     'font-face' => 'Fonty',
+    'media' => 'Média',
 );
 ?>
 <!DOCTYPE html>
