@@ -79,10 +79,14 @@ class Parser {
      */
     protected $condition;
 
+    /**
+     * Nastaví pozici v bufferu
+     *
+     * @param int
+     * @return void
+     */
     protected function setOffset($offset) {
         $this->offset = $offset;
-
-        //debug
         if ($this->maxOffset < $offset) {
             $this->maxOffset = $offset;
         }
