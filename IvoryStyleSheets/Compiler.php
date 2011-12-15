@@ -235,21 +235,6 @@ class Compiler {
     }
 
     /**
-     * Volání funkce
-     *
-     * @param string
-     * @param array
-     * @return array
-     */
-    protected function callFunction($name, array $args) {
-        $value = call_user_func_array($this->functions[$name], $args);
-        if (!is_array($value)) {
-            throw new Exception("Funkce '$name' nevrátila pole");
-        }
-        return $value;
-    }
-
-    /**
      * Kompilace souboru
      *
      * @param string
@@ -309,8 +294,10 @@ class Compiler {
         //globální blok
         $this->reduced[] = new Main;
 
+        //TODO Analyzer
         $this->reduceBlock($tree);
 
+        //TODO Generator
         ob_start();
         foreach ($this->reduced as $block) {
             if ($block instanceof Block) {
@@ -747,6 +734,21 @@ class Compiler {
         throw new Exception("Soubor '$file' se nepodařilo vložit");
     }
     
+    /**
+     * Volání funkce
+     *
+     * @param string
+     * @param array
+     * @return array
+     */
+    protected function callFunction($name, array $args) {
+        $value = call_user_func_array($this->functions[$name], $args);
+        if (!is_array($value)) {
+            throw new Exception("Funkce '$name' nevrátila pole");
+        }
+        return $value;
+    }
+
     /**
      * Převod volání mixinu na seznam hodnot
      *
