@@ -16,6 +16,7 @@ $examples = array(
     'while' => 'While cyklus',
     'map' => 'Pole',
     'include' => 'Vkládání souborů',
+    'font-face' => 'Fonty',
 );
 ?>
 <!DOCTYPE html>
