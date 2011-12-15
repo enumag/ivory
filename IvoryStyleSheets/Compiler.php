@@ -152,6 +152,13 @@ class Compiler {
     protected $mixins;
 
     /**
+     * Zpracování @media bloku
+     *
+     * @var bool
+     */
+    protected $inMedia;
+
+    /**
      * Konstruktor
      *
      * @return void
@@ -308,6 +315,7 @@ class Compiler {
 
         //globální blok
         $this->reduced[] = new Main;
+        $this->inMedia = FALSE;
 
         $this->reduceBlock($tree);
 
@@ -390,12 +398,15 @@ class Compiler {
                 echo '@font-face';
             } elseif ($block instanceof Media) {
                 echo '@media ' . $block->media;
-                //TODO foreach compileBlock properties
             } else {
                 throw new \Exception("Neimplementováno");
             }
             echo ' {' . static::NL;
             foreach ($block->properties as $property) {
+                if ($block instanceof Media) {
+                    $this->compileBlock($property);
+                    continue;
+                }
                 $value = $this->compileValue($property[2]);
                 if ($property[0] == static::$prefixes['important']) {
                     $value .= ' !important';
@@ -510,18 +521,43 @@ class Compiler {
     }
 
     /**
-     * Hledání zkompilovaného bloku
+     * Zjistí kontext redukce
      *
-     * @param array
-     * @return Rule
+     * @return array
      */
-    protected function findReduced(array $selectors) {
-        foreach ($this->reduced as $block) {
-            if ($block instanceof Rule && $selectors == $block->selectors) {
-                return $block;
-            }
+    protected function & getReducedContext() {
+        //return $this->inMedia ? &end($this->reduced)->properties : &$this->reduced;
+        if ($this->inMedia) {
+            return end($this->reduced)->properties;
+        } else {
+            return $this->reduced;
         }
-        return $this->reduced[] = new Rule($selectors);
+    }
+
+    /**
+     * Najde nebo vytvoří blok
+     *
+     * @param Block
+     * @param array
+     * @return Block
+     */
+    protected function getReduced(Block $block, array $selectors) {
+        $context = & $this->getReducedContext();
+        if ($block instanceof NestedRule || $block instanceof Mixin) {
+            foreach ($context as $reduced) {
+                if ($reduced instanceof Rule && $selectors == $reduced->selectors) {
+                    return $reduced;
+                }
+            }
+            return $context[] = new Rule($selectors);
+        } elseif ($block instanceof Media) {
+            $this->inMedia = TRUE;
+            return $context[] = new Media($block->media);
+        } elseif ($block instanceof FontFace || $block instanceof Main) {
+            return $context[] = new $block;
+        } else {
+            throw new \Exception("Neimplementováno");
+        }
     }
 
     /**
@@ -551,22 +587,15 @@ class Compiler {
         if ($block instanceof NestedRule) {
             $selectors = $this->combineSelectors($this->replaceVariables($block->prefixes), $selectors);
             $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors));
-            $reduced = $this->findReduced($selectors);
-        } elseif ($block instanceof Mixin) {
-            $reduced = $this->findReduced($selectors);
-        } elseif ($block instanceof Media) {
-            $reduced = new Media($block->media);
-            $this->reduced[] = $reduced;
-        } else {
-            $reduced = new $block;
-            $this->reduced[] = $reduced;
         }
+
+        $reduced = $this->getReduced($block, $selectors);
 
         foreach ($block->properties as $property) {
             if (is_array($property)) {
                 try {
                     if ($property[0] == static::$prefixes['variable']) {
-                        if (count($property) == 5) {//zápis do pole
+                        if (count($property) == 5) { //zápis do pole
                             $this->saveToMap($property[1], $this->valueToIndex($property[4]), $this->reduceValue($property[2]));
                         } else {
                             $this->saveVariable($property[1], $this->reduceValue($property[2]));
@@ -584,12 +613,9 @@ class Compiler {
                         }
                         $reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
                     } elseif ($property[0] == static::$prefixes['special'] && $property[1] == 'include') {
-                        //if (!$reduced instanceof Main) {
-                        //TODO !$this->inMedia
-                        if ($reduced instanceof Rule && $selectors != array('')) {
+                        if ($this->inMedia || ($reduced instanceof Rule && $selectors != array(''))) {
                             throw new Exception("Include může být jen v globálním bloku");
                         }
-                        //TODO příznak $this->inMedia
                         $value = $this->reduceValue($property[2]);
                         if ($value[0] !== 'string') {
                             throw new Exception("Název includovaného souboru musí být řetězec");
@@ -619,6 +645,10 @@ class Compiler {
             }
         }
         
+        if ($block instanceof Media) {
+            $this->inMedia = FALSE;
+        }
+
         //zrušení nejvyšší vrstvy proměnných
         if (!$block instanceof Main) {
             array_pop($this->variables);
@@ -766,7 +796,9 @@ class Compiler {
                 $this->reduceBlock($tree);
                 return;
             } elseif ($extension == 'css') {
-                $this->reduced[] = file_get_contents($path);
+                //TODO PHP 5.4: & $this->getReducedContext()[] = file_get_contents($path);
+                $context = & $this->getReducedContext();
+                $context[] = file_get_contents($path);
                 return;
             }
         }
