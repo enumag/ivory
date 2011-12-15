@@ -13,6 +13,18 @@ namespace Ivory\StyleSheets;
  */
 class Media extends AtRule {
 
+    /**
+     * @var string
+     */
+    public $media;
 
+    /**
+     * @param string
+     * @return void
+     */
+    public function __construct($media) {
+        parent::__construct();
+        $this->media = $media;
+    }
 
 }
