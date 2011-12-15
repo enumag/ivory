@@ -1,5 +1,5 @@
 @font-face($font, $name: $font) {
-    //@font-face {
+    @font-face {
         font-family: $name;
         src: url($font . '.eot');
         src: url($font . '.eot?#iefix') format('embedded-opentype'),
