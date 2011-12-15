@@ -149,8 +149,6 @@ class Parser {
         while ($this->parseNext());
 
         if ($this->getOffset() <> strlen($this->buffer)) {
-            //throw new ParseException("Chyba parsování " . ($this->file ? "v souboru '$this->file' " : "") . "na řádce $line");
-            //throw new ParseException("Chyba parsování na řádce $line");
             $this->throwError("Chyba parsování", $this->getLine($this->maxOffset));
         }
 
