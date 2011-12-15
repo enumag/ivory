@@ -580,6 +580,7 @@ class Compiler {
                 $this->callBlock($property, $selectors);
             } elseif (!$reduced instanceof AtRule && $property instanceof Mixin) {
                 if (array_key_exists($property->name, $this->mixins)) {
+                    //PHP 5.4: throw (new Exception("Mixin '$property->name' již existuje"))->setLine($property->line);
                     $e = new Exception("Mixin '$property->name' již existuje");
                     $e->setLine($property->line);
                     throw $e;
