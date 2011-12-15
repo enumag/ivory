@@ -551,6 +551,9 @@ class Compiler {
                         }
                         $reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
                     } elseif ($property[0] == static::$prefixes['special'] && $property[1] == 'include') {
+                        if ($reduced instanceof Rule && $selectors != array('')) {
+                            throw new Exception("Include může být jen v globálním bloku");
+                        }
                         $value = $this->reduceValue($property[2]);
                         if ($value[0] !== 'string') {
                             throw new Exception("Název includovaného souboru musí být řetězec");
