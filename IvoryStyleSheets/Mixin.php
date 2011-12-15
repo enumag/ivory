@@ -32,6 +32,7 @@ class Mixin extends Block {
      * @param string
      * @param array
      * @param int
+     * @return void
      */
     public function __construct($name, array $args, $line) {
         parent::__construct();
