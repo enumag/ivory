@@ -30,7 +30,7 @@ class Parser {
     static protected $pieces = array(
             'atInclude',
             'atFontFace',
-            //'atMedia',
+            'atMedia',
             //'atImport',
             //'atKeyFrames',
             //'atCharset',
@@ -530,13 +530,35 @@ class Parser {
     }
 
     /**
+     * Media blok
+     *
+     * @return bool
+     */
+    protected function atMedia() {
+        $x = $this->getOffset();
+        if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
+                $this->char('@media') &&
+                $this->mediaQueries($media) &&
+                $this->char('{')) {
+            $block = new Media($media);
+            $this->getActualBlock()->properties[] = $block;
+            $this->stack->push($block);
+            return TRUE;
+        }
+        $this->setOffset($x);
+        return FALSE;
+    }
+
+    /**
      * Seznam medií
+     *
+     * @todo povolit expression (string)
      *
      * @param NULL
      * @return bool
      */
     protected function mediaQueries(&$media) {
-        if ($this->match('[^{;]+', $matches)) {
+        if ($this->match('[^$@{;]+', $matches)) {
             $media = $matches[0];
             return TRUE;
         }
@@ -551,7 +573,9 @@ class Parser {
      */
     protected function atFontFace() {
         $x = $this->getOffset();
-        if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
+        if (($this->getActualBlock() instanceof Main ||
+                $this->getActualBlock() instanceof Media ||
+                $this->getActualBlock() instanceof Mixin) &&
                 $this->char('@font-face') &&
                 $this->char('{')) {
             $block = new FontFace;
