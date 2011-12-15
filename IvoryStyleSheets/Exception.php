@@ -20,8 +20,8 @@ class Exception extends \Exception {
      */
     public function __construct() {
         call_user_func_array('parent::__construct', func_get_args());
-        $this->setFile('unknown');
-        $this->line = 'unknown';
+        $this->file = NULL;
+        $this->line = NULL;
     }
 
     /**
@@ -35,7 +35,9 @@ class Exception extends \Exception {
             var_export($line);
             throw new \Exception();
         }
-        $this->line = $line;
+        if ($this->line === NULL) {
+            $this->line = $line;
+        }
         return $this;
     }
 
@@ -46,7 +48,9 @@ class Exception extends \Exception {
      * @return Ivory\StyleSheets\Exception
      */
     public function setFile($file) {
-        $this->file = $file;
+        if ($this->file === NULL) {
+            $this->file = $file;
+        }
         return $this;
     }
 
