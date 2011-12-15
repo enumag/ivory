@@ -14,7 +14,7 @@ namespace Ivory\StyleSheets;
  * @author Jáchym Toušek
  */
 class Compiler {
-    
+
     // nová řádka
     const NL = "\n";
 
@@ -79,7 +79,7 @@ class Compiler {
             '#', // číslo
             '', // výchozí jednotka
     );
-    
+
     /**
      * Povolené prefixy
      *
@@ -280,7 +280,7 @@ class Compiler {
     public function compileString($input) {
         return $this->compile($input);
     }
-    
+
     /**
      * Výsledný textový výstup
      *
@@ -293,7 +293,7 @@ class Compiler {
 
         $parser = new Parser;
         $tree = $parser->parse($input);
-        
+
         //prázdný zásobník
         $this->files->clear();
         $this->allFiles = array();
@@ -346,7 +346,7 @@ class Compiler {
         setlocale(LC_NUMERIC, $locale);
         return ob_get_clean();
     }
-    
+
     /**
      * Zjistí aktuální soubor
      *
@@ -404,12 +404,13 @@ class Compiler {
      * Zkompiluje jednotku na výstup
      *
      * @param array
+     * @param bool
      * @return string
      */
-    protected function compileUnit(array $unit) {
+    protected function compileUnit(array $unit, $useDefault = TRUE) {
         if ($unit[1] == 0 || $unit[2] == '#') {
             return;
-        } elseif ($unit[2] == '') {
+        } elseif ($unit[2] == '' && $useDefault) {
             return $this->defaultUnit;
         } else {
             return $unit[2];
@@ -420,13 +421,14 @@ class Compiler {
      * Kompiluje hodnotu na výstup
      *
      * @param array
+     * @param bool
      * @return string
      */
-    protected function compileValue(array $value) {
+    protected function compileValue(array $value, $useDefault = TRUE) {
         switch ($value[0]) {
             case 'unit':
                 $number = ltrim(round($value[1], 3), '0');
-                return ($number == '' ? 0 : $number) . $this->compileUnit($value);
+                return ($number == '' ? 0 : $number) . $this->compileUnit($value, $useDefault);
             case 'args':
                 array_shift($value);
                 return implode(', ', array_map(array($this, 'compileValue'), $value));
@@ -472,7 +474,7 @@ class Compiler {
      * @return string
      */
     protected function replaceVariableCallback($matches) {
-        return $this->compileValue($this->findVariable($matches[1]));
+        return $this->compileValue($this->findVariable($matches[1]), FALSE);
     }
 
     /**
@@ -592,7 +594,7 @@ class Compiler {
                 throw new \Exception("Neimplementováno");
             }
         }
-        
+
         //zrušení nejvyšší vrstvy proměnných
         if (!$block instanceof Main) {
             array_pop($this->variables);
@@ -746,7 +748,7 @@ class Compiler {
         }
         throw new Exception("Soubor '$file' se nepodařilo vložit");
     }
-    
+
     /**
      * Převod volání mixinu na seznam hodnot
      *
@@ -1119,9 +1121,9 @@ class Compiler {
         } elseif ($operator == '.' && $value1[0] == 'raw' && $value2[0] == 'string') {
             return array('string', substr($this->stringEncode($value1[1]), 0, -1) . substr($value2[1], 1, -1) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'unit') {
-            return array('string', '\'' . substr($value1[1], 1, -1) . $value2[1] . $this->compileUnit($value2) . '\'');
+            return array('string', '\'' . substr($value1[1], 1, -1) . $value2[1] . $this->compileUnit($value2, FALSE) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'unit' && $value2[0] == 'string') {
-            return array('string', '\'' . $value1[1] . $this->compileUnit($value1) . substr($value2[1], 1, -1) . '\'');
+            return array('string', '\'' . $value1[1] . $this->compileUnit($value1, FALSE) . substr($value2[1], 1, -1) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'string') {
             return array('string', '\'' . substr($value1[1], 1, -1) . substr($value2[1], 1, -1) . '\'');
         } elseif (array_key_exists($operator, self::$binaryOperators) && $value1[0] == 'unit' && $value2[0] == 'unit') {
@@ -1157,7 +1159,7 @@ class Compiler {
                     break;
                 case '.':
                     $answer[] = 'string';
-                    $answer[] = '\'' . $value1[1] . $this->compileUnit($value1) . $value2[1] . $this->compileUnit($value2) . '\'';
+                    $answer[] = '\'' . $value1[1] . $this->compileUnit($value1, FALSE) . $value2[1] . $this->compileUnit($value2, FALSE) . '\'';
                     break;
                 case '=':
                     $answer[] = 'bool';
@@ -1192,5 +1194,5 @@ class Compiler {
         }
         throw new Exception("Nepovolená operace ($value1[0] $operator $value2[0])");
     }
-    
+
 }
