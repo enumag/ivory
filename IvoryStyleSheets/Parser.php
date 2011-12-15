@@ -480,7 +480,7 @@ class Parser {
      * @return bool
      */
     protected function ruleBegin() {
-        if (!$this->getActualBlock() instanceof AtRule &&
+        if (!$this->getActualBlock() instanceof FontFace &&
                 $this->extendedSelectors($statement, $prefixes, $selectors) &&
                 $this->char('{')) {
             if ($statement[0] == 'elseif' || $statement[0] == 'else') {

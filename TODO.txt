@@ -8,3 +8,5 @@
 - funkce calc
 - předdefinované funkce
 - vkládání proměnných z PHP
+
+- uvnitř @media může být znovu použit nějaký starý selektor!! úplně oddělené hledání bloků

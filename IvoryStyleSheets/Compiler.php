@@ -313,35 +313,7 @@ class Compiler {
 
         ob_start();
         foreach ($this->reduced as $block) {
-            if ($block instanceof Block) {
-                if (count($block->properties) == 0) {
-                    //zahoď prázdné bloky
-                    continue;
-                }
-                if ($block instanceof Rule) {
-                    echo implode(',' . static::NL, $block->selectors);
-                } elseif ($block instanceof FontFace) {
-                    echo '@font-face';
-                }
-                echo ' {' . static::NL;
-                foreach ($block->properties as $property) {
-                    $value = $this->compileValue($property[2]);
-                    if ($property[0] == static::$prefixes['important']) {
-                        $value .= ' !important';
-                    } elseif ($property[0] == static::$prefixes['raw']) {
-                        if ($property[2][0] == 'string') {
-                            $value = $this->stringDecode($value);
-                        }
-                    }
-                    echo $property[1] . ': ' . $value . ';' . static::NL;
-                }
-                echo '}' . static::NL;
-            } elseif (is_string($block)) {
-                //surové CSS
-                echo $block;
-            } else {
-                throw new \Exception("Neimplementováno");
-            }
+            $this->compileBlock($block);
         }
         setlocale(LC_NUMERIC, $locale);
         return ob_get_clean();
@@ -353,7 +325,7 @@ class Compiler {
      * @return string
      */
     protected function getFile() {
-        return $this->files->isEmpty() ? 'unknown' : $this->files->top();
+        return /* TODO $this->files->isEmpty() ? 'unknown' : */$this->files->top();
     }
 
     /**
@@ -398,6 +370,49 @@ class Compiler {
      */
     protected function stringDecode($string) {
         return strtr(substr($string, 1, -1), array('\\\\' => '\\', '\\\'' => '\''));
+    }
+
+    /**
+     * Zkompiluje blok
+     *
+     * @param Block|string
+     * @return void
+     */
+    protected function compileBlock($block) {
+        if ($block instanceof Block) {
+            if (count($block->properties) == 0) {
+                //zahoď prázdné bloky
+                return;
+            }
+            if ($block instanceof Rule) {
+                echo implode(',' . static::NL, $block->selectors);
+            } elseif ($block instanceof FontFace) {
+                echo '@font-face';
+            } elseif ($block instanceof Media) {
+                echo '@media ' . $block->media;
+                //TODO foreach compileBlock properties
+            } else {
+                throw new \Exception("Neimplementováno");
+            }
+            echo ' {' . static::NL;
+            foreach ($block->properties as $property) {
+                $value = $this->compileValue($property[2]);
+                if ($property[0] == static::$prefixes['important']) {
+                    $value .= ' !important';
+                } elseif ($property[0] == static::$prefixes['raw']) {
+                    if ($property[2][0] == 'string') {
+                        $value = $this->stringDecode($value);
+                    }
+                }
+                echo $property[1] . ': ' . $value . ';' . static::NL;
+            }
+            echo '}' . static::NL;
+        } elseif (is_string($block)) {
+            //surové CSS
+            echo $block;
+        } else {
+            throw new \Exception("Neimplementováno");
+        }
     }
 
     /**
@@ -539,6 +554,9 @@ class Compiler {
             $reduced = $this->findReduced($selectors);
         } elseif ($block instanceof Mixin) {
             $reduced = $this->findReduced($selectors);
+        } elseif ($block instanceof Media) {
+            $reduced = new Media($block->media);
+            $this->reduced[] = $reduced;
         } else {
             $reduced = new $block;
             $this->reduced[] = $reduced;
@@ -559,14 +577,19 @@ class Compiler {
                     } elseif ($property[0] == static::$prefixes['none'] ||
                             $property[0] == static::$prefixes['important'] ||
                             $property[0] == static::$prefixes['raw']) {
-                        if ($reduced instanceof Main || ($reduced instanceof Rule && $selectors == array(''))) {
-                            throw new Exception("Vlastnost nemůže být v globálním bloku");
+                        if ($reduced instanceof Main ||
+                                $reduced instanceof Media ||
+                                ($reduced instanceof Rule && $selectors == array(''))) {
+                            throw new Exception("Vlastnost nemůže být v globálním bloku ani v @media bloku");
                         }
                         $reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
                     } elseif ($property[0] == static::$prefixes['special'] && $property[1] == 'include') {
+                        //if (!$reduced instanceof Main) {
+                        //TODO !$this->inMedia
                         if ($reduced instanceof Rule && $selectors != array('')) {
                             throw new Exception("Include může být jen v globálním bloku");
                         }
+                        //TODO příznak $this->inMedia
                         $value = $this->reduceValue($property[2]);
                         if ($value[0] !== 'string') {
                             throw new Exception("Název includovaného souboru musí být řetězec");
@@ -579,7 +602,7 @@ class Compiler {
                 } catch (Exception $e) {
                     throw $e->setLine((string) end($property));
                 }
-            } elseif (!$reduced instanceof AtRule && $property instanceof NestedRule) {
+            } elseif ((!$reduced instanceof AtRule || $reduced instanceof Media) && $property instanceof NestedRule) {
                 $this->callBlock($property, $selectors);
             } elseif (!$reduced instanceof AtRule && $property instanceof Mixin) {
                 if (array_key_exists($property->name, $this->mixins)) {
@@ -589,7 +612,7 @@ class Compiler {
                     throw $e;
                 }
                 $this->mixins[$property->name] = $property;
-            } elseif ($property instanceof FontFace) {
+            } elseif ($property instanceof AtRule) {
                 $this->reduceBlock($property);
             } else {
                 throw new \Exception("Neimplementováno");
