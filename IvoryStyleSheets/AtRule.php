@@ -11,4 +11,4 @@ namespace Ivory\StyleSheets;
 /**
  * @author Jáchym Toušek
  */
-abstract class SpecialBlock extends AtRule {}
+abstract class AtRule extends Block {}
