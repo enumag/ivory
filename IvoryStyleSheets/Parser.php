@@ -378,8 +378,6 @@ class Parser {
     /**
      * Jeden selektor
      *
-     * @todo proměnné v selektorech <$var>
-     *
      * @param NULL
      * @return bool
      */
@@ -898,13 +896,10 @@ class Parser {
     /**
      * Operand ve výrazu
      *
-     * @todo unární operátory, zrušení negace
-     *
      * @param NULL
-     * @param bool
      * @return bool
      */
-    protected function operand(&$operand, $negative = TRUE) {
+    protected function operand(&$operand) {
         // číslo nebo jednotka
         if ($this->unit($operand)) return TRUE;
         // funkce

@@ -844,7 +844,6 @@ class Compiler {
                 }
             }
         }
-        //TODO: vytvořit pole pokud proměnná neexistuje?
         throw new Exception("Pole $name nenalezeno");
     }
 
@@ -887,8 +886,7 @@ class Compiler {
     /**
      * Zjednodušení hodnoty
      *
-     * @todo
-     *  accessory atd
+     * @todo accessors
      *
      * @param array
      * @return array
