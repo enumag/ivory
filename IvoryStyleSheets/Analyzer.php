@@ -323,8 +323,6 @@ class Analyzer extends Object {
                     throw $e->setLine($property->line);
                 }
                 $this->mixins[$property->name] = $property;
-            } elseif ($property instanceof FontFace) {
-                $this->reduceBlock($property);
             } elseif ($property instanceof Media) {
                 $media = $this->reduceValue($property->media);
                 if ($media[0] !== 'string' && $media[0] !== 'raw') {
@@ -333,6 +331,8 @@ class Analyzer extends Object {
                     throw $e->setLine($property->line);
                 }
                 $property->media = $media;
+                $this->reduceBlock($property);
+            } elseif ($property instanceof FontFace) {
                 $this->reduceBlock($property);
             } else {
                 throw new \Exception("Neimplementováno");
