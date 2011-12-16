@@ -1,8 +1,6 @@
 ﻿- složkové API
 - jak kešovat závislosti?
 - accessory
-- @media
-- podpora medií u @include
 - @import
 - @...
 - funkce calc
