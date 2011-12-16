@@ -9,6 +9,8 @@
 namespace Ivory\StyleSheets;
 
 /**
+ * Zásobník
+ *
  * @author Jáchym Toušek
  */
 class Stack implements \Countable {
