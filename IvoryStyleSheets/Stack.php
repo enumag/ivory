@@ -16,7 +16,7 @@ class Stack implements \Countable {
     /**
      * @var array
      */
-    public $elements;
+    protected $elements;
 
     public function __construct() {
         $this->clear();
