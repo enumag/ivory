@@ -60,7 +60,7 @@ class Generator extends Object {
                     $this->compileBlock($property);
                     continue;
                 }
-                $value = $this->compileValue($property[2]);
+                $value = $this->compileValue($property[2], TRUE);
                 if ($property[0] == Compiler::$prefixes['important']) {
                     $value .= ' !important';
                 } elseif ($property[0] == Compiler::$prefixes['raw']) {
@@ -86,17 +86,17 @@ class Generator extends Object {
      * @param bool
      * @return string
      */
-    public function compileValue(array $value, $useDefault = TRUE) {
+    public function compileValue(array $value, $useDefault = FALSE) {
         switch ($value[0]) {
             case 'unit':
                 $number = ltrim(round($value[1], 3), '0');
                 return ($number == '' ? 0 : $number) . $this->compileUnit($value, $useDefault);
             case 'args':
                 array_shift($value);
-                return implode(', ', array_map(array($this, 'compileValue'), $value));
+                return implode(', ', array_map(array($this, 'compileValue'), $value, array(TRUE)));
             case 'list':
                 array_shift($value);
-                return implode(' ', array_map(array($this, 'compileValue'), $value));
+                return implode(' ', array_map(array($this, 'compileValue'), $value, array(TRUE)));
             case 'keyword':
                 return $value[1];
             case 'color':
@@ -105,7 +105,7 @@ class Generator extends Object {
                 }
                 return 'rgba(' . $value[1] . ',' . $value[2] . ',' . $value[3] . ',' . $value[4] . ')';
             case 'function':
-                return $value[1] . '(' . implode(',', array_map(array($this, 'compileValue'), $value[2])) . ')';
+                return $value[1] . '(' . implode(',', array_map(array($this, 'compileValue'), $value[2], array(TRUE))) . ')';
             case 'string':
             case 'raw':
                 return $value[1];
@@ -121,7 +121,7 @@ class Generator extends Object {
      * @param bool
      * @return string
      */
-    public function compileUnit(array $unit, $useDefault = TRUE) {
+    public function compileUnit(array $unit, $useDefault = FALSE) {
         if ($unit[1] == 0 || $unit[2] == '#') {
             return;
         } elseif ($unit[2] == '' && $useDefault) {

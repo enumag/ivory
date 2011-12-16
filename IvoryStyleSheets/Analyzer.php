@@ -187,7 +187,7 @@ class Analyzer extends Object {
      * @return string
      */
     protected function replaceVariableCallback($matches) {
-        return $this->generator->compileValue($this->findVariable($matches[1]), FALSE);
+        return $this->generator->compileValue($this->findVariable($matches[1]));
     }
 
     /**
@@ -879,9 +879,9 @@ class Analyzer extends Object {
         } elseif ($operator == '.' && $value1[0] == 'raw' && $value2[0] == 'string') {
             return array('string', substr(Compiler::stringEncode($value1[1]), 0, -1) . substr($value2[1], 1, -1) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'unit') {
-            return array('string', '\'' . substr($value1[1], 1, -1) . $value2[1] . $this->generator->compileUnit($value2, FALSE) . '\'');
+            return array('string', '\'' . substr($value1[1], 1, -1) . $value2[1] . $this->generator->compileUnit($value2) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'unit' && $value2[0] == 'string') {
-            return array('string', '\'' . $value1[1] . $this->generator->compileUnit($value1, FALSE) . substr($value2[1], 1, -1) . '\'');
+            return array('string', '\'' . $value1[1] . $this->generator->compileUnit($value1) . substr($value2[1], 1, -1) . '\'');
         } elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'string') {
             return array('string', '\'' . substr($value1[1], 1, -1) . substr($value2[1], 1, -1) . '\'');
         } elseif (array_key_exists($operator, Compiler::$binaryOperators) && $value1[0] == 'unit' && $value2[0] == 'unit') {
@@ -917,7 +917,7 @@ class Analyzer extends Object {
                     break;
                 case '.':
                     $answer[] = 'string';
-                    $answer[] = '\'' . $value1[1] . $this->generator->compileUnit($value1, FALSE) . $value2[1] . $this->generator->compileUnit($value2, FALSE) . '\'';
+                    $answer[] = '\'' . $value1[1] . $this->generator->compileUnit($value1) . $value2[1] . $this->generator->compileUnit($value2) . '\'';
                     break;
                 case '=':
                     $answer[] = 'bool';
