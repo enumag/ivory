@@ -27,10 +27,15 @@ class Generator extends Object {
     public function generate(array &$reduced, $defaultUnit) {
         $this->defaultUnit = $defaultUnit;
         ob_start();
-        foreach ($reduced as $block) {
-            $this->compileBlock($block);
+        try {
+            foreach ($reduced as $block) {
+                $this->compileBlock($block);
+            }
+            return ob_get_clean();
+        } catch (\Exception $e) {
+            ob_end_clean();
+            throw $e;
         }
-        return ob_get_clean();
     }
 
     /**
