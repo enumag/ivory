@@ -240,7 +240,7 @@ class Analyzer extends Object {
             return $context[] = new Rule($selectors);
         } elseif ($block instanceof Media) {
             $this->inMedia = TRUE;
-            return $context[] = new Media($block->media);
+            return $context[] = new Media($block->media, $block->line);
         } elseif ($block instanceof FontFace || $block instanceof Main) {
             return $context[] = new $block;
         } else {
@@ -301,12 +301,7 @@ class Analyzer extends Object {
                         if ($this->inMedia || ($reduced instanceof Rule && $selectors != array(''))) {
                             throw new Exception("Include může být jen v globálním bloku");
                         }
-                        $value = $this->reduceValue($property[2]);
-                        if ($value[0] !== 'string') {
-                            throw new Exception("Název includovaného souboru musí být řetězec");
-                        }
-                        $path = Compiler::stringDecode($value[1]);
-                        $this->callInclude($path, $property[3]);
+                        $this->callInclude($property);
                     } else {
                         throw new \Exception("Neimplementováno");
                     }
@@ -323,13 +318,21 @@ class Analyzer extends Object {
                     throw new Exception("At-rules nesmí obsahovat mixin");
                 }
                 if (array_key_exists($property->name, $this->mixins)) {
-                    //PHP 5.4: throw (new Exception("Mixin '$property->name' již existuje"))->setLine($property->line);
+                    //TODO: PHP 5.4
                     $e = new Exception("Mixin '$property->name' již existuje");
-                    $e->setLine($property->line);
-                    throw $e;
+                    throw $e->setLine($property->line);
                 }
                 $this->mixins[$property->name] = $property;
-            } elseif ($property instanceof AtRule) {
+            } elseif ($property instanceof FontFace) {
+                $this->reduceBlock($property);
+            } elseif ($property instanceof Media) {
+                $media = $this->reduceValue($property->media);
+                if ($media[0] !== 'string' && $media[0] !== 'raw') {
+                    //TODO: PHP 5.4
+                    $e = new Exception("Media musí být řetězec");
+                    throw $e->setLine($property->line);
+                }
+                $property->media = $media;
                 $this->reduceBlock($property);
             } else {
                 throw new \Exception("Neimplementováno");
@@ -467,7 +470,12 @@ class Analyzer extends Object {
      * @param string
      * @return void
      */
-    protected function callInclude($file, $media) {
+    protected function callInclude(array $include) {
+        $value = $this->reduceValue($include[2]);
+        if ($value[0] !== 'string') {
+            throw new Exception("Název vkládaného souboru musí být řetězec");
+        }
+        $file = Compiler::stringDecode($value[1]);
         foreach ($this->includePaths as $path) {
             $path .= DIRECTORY_SEPARATOR . $file;
             $extension = pathinfo($file, PATHINFO_EXTENSION);
@@ -480,8 +488,8 @@ class Analyzer extends Object {
                 } catch (Exception $e) {
                     throw $e->setFile($this->getFile());
                 }
-                if ($media) {
-                    $block = new Media($media);
+                if ($include[3] !== NULL) {
+                    $block = new Media($include[3], $include[4]);
                     $block->properties = $tree->properties;
                     $this->reduceBlock($block);
                 } else {

@@ -50,7 +50,14 @@ class Generator extends Object {
             } elseif ($block instanceof FontFace) {
                 echo '@font-face';
             } elseif ($block instanceof Media) {
-                echo '@media ' . $block->media;
+                echo '@media ';
+                if ($block->media[0] == 'string') {
+                    echo Compiler::stringDecode($block->media[1]);
+                } elseif ($block->media[0] == 'raw') {
+                    echo $block->media[1];
+                } else {
+                    throw new \Exception("Neimplementováno");
+                }
             } else {
                 throw new \Exception("Neimplementováno");
             }

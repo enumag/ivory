@@ -467,7 +467,7 @@ class Parser extends Object {
                 $this->arguments($args) &&
                 $this->char(')') &&
                 $this->char('{')) {
-            $mixin = new Mixin($name, $args, $x);
+            $mixin = new Mixin($name, $args, $this->getLine($x));
             $this->getActualBlock()->properties[] = $mixin;
             $this->stack->push($mixin);
             return TRUE;
@@ -520,7 +520,7 @@ class Parser extends Object {
         if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
                 $this->char('@include') &&
                 $this->expression($path) &&
-                ($this->mediaQueries($media) || TRUE) && //nepovinné
+                ($this->expression($media) || TRUE) && //nepovinné
                 $this->end()) {
             $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'include', $path, $media, $this->getLine($x));
             return TRUE;
@@ -538,31 +538,14 @@ class Parser extends Object {
         $x = $this->getOffset();
         if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
                 $this->char('@media') &&
-                $this->mediaQueries($media) &&
+                $this->expression($media) &&
                 $this->char('{')) {
-            $block = new Media($media);
+            $block = new Media($media, $this->getLine($x));
             $this->getActualBlock()->properties[] = $block;
             $this->stack->push($block);
             return TRUE;
         }
         $this->setOffset($x);
-        return FALSE;
-    }
-
-    /**
-     * Seznam medií
-     *
-     * @todo povolit expression (string)
-     *
-     * @param NULL
-     * @return bool
-     */
-    protected function mediaQueries(&$media) {
-        if ($this->match('[^$@{;]+', $matches)) {
-            $media = $matches[0];
-            return TRUE;
-        }
-        $media = '';
         return FALSE;
     }
 
@@ -873,6 +856,7 @@ class Parser extends Object {
         }
 
         if ($parens > 0 || count($expr) == 1) {
+            $expr = NULL;
             return FALSE;
         }
         if (count($expr) == 2) {
