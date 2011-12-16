@@ -313,9 +313,15 @@ class Analyzer extends Object {
                 } catch (Exception $e) {
                     throw $e->setLine((string) end($property));
                 }
-            } elseif ((!$reduced instanceof AtRule || $reduced instanceof Media) && $property instanceof NestedRule) {
+            } elseif ($property instanceof NestedRule) {
+                if ($reduced instanceof AtRule && !$reduced instanceof Media) {
+                    throw new Exception("S výjimkou @media at-rules nesmí obsahovat pravidlo");
+                }
                 $this->callBlock($property, $selectors);
-            } elseif (!$reduced instanceof AtRule && $property instanceof Mixin) {
+            } elseif ($property instanceof Mixin) {
+                if ($reduced instanceof AtRule) {
+                    throw new Exception("At-rules nesmí obsahovat mixin");
+                }
                 if (array_key_exists($property->name, $this->mixins)) {
                     //PHP 5.4: throw (new Exception("Mixin '$property->name' již existuje"))->setLine($property->line);
                     $e = new Exception("Mixin '$property->name' již existuje");
@@ -474,8 +480,13 @@ class Analyzer extends Object {
                 } catch (Exception $e) {
                     throw $e->setFile($this->getFile());
                 }
-                //media zatím zahodit, později vložit @media blok
-                $this->reduceBlock($tree);
+                if ($media) {
+                    $block = new Media($media);
+                    $block->properties = $tree->properties;
+                    $this->reduceBlock($block);
+                } else {
+                    $this->reduceBlock($tree);
+                }
                 return;
             } elseif ($extension == 'css') {
                 //TODO PHP 5.4: & $this->getReducedContext()[] = file_get_contents($path);
