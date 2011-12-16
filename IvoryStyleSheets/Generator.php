@@ -1,0 +1,134 @@
+<?php
+
+/**
+ * @package Ivory
+ * @license MIT, LGPL, BSD
+ * @copyright (c) 2011 Jáchym Toušek
+ */
+
+namespace Ivory\StyleSheets;
+
+/**
+ * Generátor IvoryStyleSheets
+ *
+ * @author Jáchym Toušek
+ */
+class Generator extends Object {
+
+    protected $defaultUnit;
+
+    /**
+     * Vygeneruje CSS
+     *
+     * @param array
+     * @param string
+     * @return string
+     */
+    public function generate(array &$reduced, $defaultUnit) {
+        $this->defaultUnit = $defaultUnit;
+        ob_start();
+        foreach ($reduced as $block) {
+            $this->compileBlock($block);
+        }
+        return ob_get_clean();
+    }
+
+    /**
+     * Zkompiluje blok
+     *
+     * @param Block|string
+     * @return void
+     */
+    protected function compileBlock($block) {
+        if ($block instanceof Block) {
+            if (count($block->properties) == 0) {
+                //zahoď prázdné bloky
+                return;
+            }
+            if ($block instanceof Rule) {
+                echo implode(',' . Compiler::NL, $block->selectors);
+            } elseif ($block instanceof FontFace) {
+                echo '@font-face';
+            } elseif ($block instanceof Media) {
+                echo '@media ' . $block->media;
+            } else {
+                throw new \Exception("Neimplementováno");
+            }
+            echo ' {' . Compiler::NL;
+            foreach ($block->properties as $property) {
+                if ($block instanceof Media) {
+                    $this->compileBlock($property);
+                    continue;
+                }
+                $value = $this->compileValue($property[2]);
+                if ($property[0] == Compiler::$prefixes['important']) {
+                    $value .= ' !important';
+                } elseif ($property[0] == Compiler::$prefixes['raw']) {
+                    if ($property[2][0] == 'string') {
+                        $value = Compiler::stringDecode($value);
+                    }
+                }
+                echo $property[1] . ': ' . $value . ';' . Compiler::NL;
+            }
+            echo '}' . Compiler::NL;
+        } elseif (is_string($block)) {
+            //surové CSS
+            echo $block;
+        } else {
+            throw new \Exception("Neimplementováno");
+        }
+    }
+
+    /**
+     * Kompiluje hodnotu na výstup
+     *
+     * @param array
+     * @param bool
+     * @return string
+     */
+    public function compileValue(array $value, $useDefault = TRUE) {
+        switch ($value[0]) {
+            case 'unit':
+                $number = ltrim(round($value[1], 3), '0');
+                return ($number == '' ? 0 : $number) . $this->compileUnit($value, $useDefault);
+            case 'args':
+                array_shift($value);
+                return implode(', ', array_map(array($this, 'compileValue'), $value));
+            case 'list':
+                array_shift($value);
+                return implode(' ', array_map(array($this, 'compileValue'), $value));
+            case 'keyword':
+                return $value[1];
+            case 'color':
+                if ($value[4] == 1) {
+                    return sprintf("#%02x%02x%02x", $value[1], $value[2], $value[3]);
+                }
+                return 'rgba(' . $value[1] . ',' . $value[2] . ',' . $value[3] . ',' . $value[4] . ')';
+            case 'function':
+                return $value[1] . '(' . implode(',', array_map(array($this, 'compileValue'), $value[2])) . ')';
+            case 'string':
+            case 'raw':
+                return $value[1];
+            default:
+                throw new \Exception("Neimplementováno");
+        }
+    }
+
+    /**
+     * Zkompiluje jednotku na výstup
+     *
+     * @param array
+     * @param bool
+     * @return string
+     */
+    public function compileUnit(array $unit, $useDefault = TRUE) {
+        if ($unit[1] == 0 || $unit[2] == '#') {
+            return;
+        } elseif ($unit[2] == '' && $useDefault) {
+            return $this->defaultUnit;
+        } else {
+            return $unit[2];
+        }
+    }
+
+}

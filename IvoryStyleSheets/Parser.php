@@ -138,10 +138,10 @@ class Parser extends Object {
     }
 
     /**
-     * Parsování řetězce (obvykle obsah souboru)
+     * Parsování řetězce
      *
      * @param string
-     * @return NestedRule
+     * @return Main
      */
     public function parse($input) {
         $this->buffer = $this->removeComments($input);
