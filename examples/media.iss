@@ -1,4 +1,6 @@
-@media handheld and (min-width: 20em), screen and (min-width: 20em) {
+$min-width: 20em;
+
+@media 'handheld and (min-width: ' . $min-width . '), screen and (min-width: ' . $min-width . ')' {
     body {
         color: blue;
     }
