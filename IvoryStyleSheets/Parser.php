@@ -13,7 +13,7 @@ namespace Ivory\StyleSheets;
  *
  * @author Jáchym Toušek
  */
-class Parser {
+class Parser extends Object {
 
     /**
      * Regulární výraz pro řetězec

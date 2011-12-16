@@ -13,7 +13,7 @@ namespace Ivory\StyleSheets;
  *
  * @author Jáchym Toušek
  */
-class Compiler {
+class Compiler extends Object {
 
     // nová řádka
     const NL = "\n";
@@ -136,6 +136,20 @@ class Compiler {
      * @var array
      */
     protected $includePaths;
+
+    /**
+     * Redukované bloky
+     *
+     * @var array
+     */
+    protected $reduced;
+
+    /**
+     * Proměnné
+     *
+     * @var array
+     */
+    protected $variables;
 
     /**
      * Funkce

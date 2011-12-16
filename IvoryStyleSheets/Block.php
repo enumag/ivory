@@ -11,7 +11,7 @@ namespace Ivory\StyleSheets;
 /**
  * @author Jáchym Toušek
  */
-abstract class Block {
+abstract class Block extends Object {
 
     /**
      * @var array
