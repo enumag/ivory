@@ -15,6 +15,11 @@ namespace Ivory\StyleSheets;
  */
 class Generator extends Object {
 
+    /**
+     * Výchozí jednotka
+     *
+     * @var string
+     */
     protected $defaultUnit;
 
     /**
