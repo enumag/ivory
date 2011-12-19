@@ -6,3 +6,4 @@
 - funkce calc
 - předdefinované funkce
 - vkládání proměnných z PHP
+- komprese selektorů, jednoznačnost accessorů
