@@ -404,7 +404,14 @@ class Parser extends Object {
          * )?                                   #na konci selektoru samozřejmě žádný znak > být nemusí, takže celá konstrukce je nepovinná
          */
         if ($this->match('(?:>?(?:[^][@$\/\\%<>,;{}\'"]++|\\[[^]]++\\]|<\\$-?[\w]++(?:[\w-]*[\w])?>))+(?:>*+(?<!>>))?', $matches)) {
-             $selector = trim($matches[0]);
+             $selector = preg_replace_callback('/\\[[^]]++\\]|\\s++([+>~])\\s++|\\s++/', function (array $matches) {
+                if (count($matches) == 2) {
+                    return $matches[1];
+                } elseif (preg_match('/^\\s++$/', $matches[0])) {
+                    return ' ';
+                }
+                return $matches[0];
+             }, trim($matches[0]));
              return TRUE;
         }
         return FALSE;
@@ -432,7 +439,7 @@ class Parser extends Object {
      * @return bool
      */
     protected function whitespace() {
-        return $this->match('\s+', $_, FALSE);
+        return $this->match('\\s+', $_, FALSE);
     }
 
     /**
@@ -912,7 +919,7 @@ class Parser extends Object {
     protected function binaryOperator(&$operator) {
         $x = $this->getOffset();
         foreach (Compiler::$binaryOperators as $op => $_) {
-            $space = preg_match('/\s/', $this->buffer[$this->getOffset() - 1]);
+            $space = preg_match('/\\s/', $this->buffer[$this->getOffset() - 1]);
             if ($this->char($op, FALSE) && $this->whitespace() == $space) {
                 $operator = array('binary', $op);
                 return TRUE;
