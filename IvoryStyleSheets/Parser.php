@@ -33,7 +33,7 @@ class Parser extends Object {
             'atMedia',
             //'atImport',
             //'atKeyFrames',
-            //'atCharset',
+            'atCharset',
             'property',
             'assign',
             'mapAccess',
@@ -523,6 +523,24 @@ class Parser extends Object {
                 ($this->expression($media) || TRUE) && //nepovinné
                 $this->end()) {
             $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'include', $path, $media, $this->getLine($x));
+            return TRUE;
+        }
+        $this->setOffset($x);
+        return FALSE;
+    }
+
+    /**
+     * Kódování
+     *
+     * @return bool
+     */
+    protected function atCharset() {
+        $x = $this->getOffset();
+        if (($this->getActualBlock() instanceof Main) &&
+                $this->char('@charset') &&
+                $this->expression($charset) &&
+                $this->end()) {
+            $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'charset', $charset, $this->getLine($x));
             return TRUE;
         }
         $this->setOffset($x);

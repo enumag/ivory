@@ -302,6 +302,16 @@ class Analyzer extends Object {
                             throw new Exception("Include může být jen v globálním bloku");
                         }
                         $this->callInclude($property);
+                    } elseif ($property[0] == Compiler::$prefixes['special'] && $property[1] == 'charset') {
+                        if (!$reduced instanceof Main) {
+                            throw new Exception("Charset může být jen v globálním bloku");
+                        }
+                        $value = $this->reduceValue($property[2]);
+                        if ($value[0] !== 'string') {
+                            throw new Exception("Název vkládaného souboru musí být řetězec");
+                        }
+                        $context = & $this->getReducedContext();
+                        $context[] = array('charset', $value);
                     } else {
                         throw new \Exception("Neimplementováno");
                     }
