@@ -305,13 +305,24 @@ class Analyzer extends Object {
                             throw new Exception("Include může být jen v globálním bloku");
                         }
                         $this->callInclude($property);
+                    } elseif ($property[0] == Compiler::$prefixes['special'] && $property[1] == 'import') {
+                        if ($this->inMedia || ($reduced instanceof Rule && $selectors != array(''))) {
+                            throw new Exception("Import může být jen v globálním bloku");
+                        }
+                        $path = $this->reduceValue($property[2]);
+                        if ($path[0] !== 'string') {
+                            throw new Exception("Název vkládaného souboru musí být řetězec");
+                        }
+                        $media = $this->convertMedia($this->reduceValue($property[3]));
+                        $context = & $this->getReducedContext();
+                        $context[] = array('import', $path, $media);
                     } elseif ($property[0] == Compiler::$prefixes['special'] && $property[1] == 'charset') {
                         if (!$reduced instanceof Main) {
                             throw new Exception("Charset může být jen v globálním bloku");
                         }
                         $value = $this->reduceValue($property[2]);
                         if ($value[0] !== 'string') {
-                            throw new Exception("Název vkládaného souboru musí být řetězec");
+                            throw new Exception("Název kódování musí být řetězec");
                         }
                         $context = & $this->getReducedContext();
                         $context[] = array('charset', $value);
@@ -337,13 +348,11 @@ class Analyzer extends Object {
                 }
                 $this->mixins[$property->name] = $property;
             } elseif ($property instanceof Media) {
-                $media = $this->reduceValue($property->media);
-                if ($media[0] !== 'string' && $media[0] !== 'raw') {
-                    //TODO: PHP 5.4
-                    $e = new Exception("Media musí být řetězec");
+                try {
+                    $property->media = $this->convertMedia($this->reduceValue($property->media));
+                } catch (Exception $e) {
                     throw $e->setLine($property->line);
                 }
-                $property->media = $media;
                 $this->reduceBlock($property);
             } elseif ($property instanceof FontFace) {
                 $this->reduceBlock($property);
@@ -359,6 +368,22 @@ class Analyzer extends Object {
         //zrušení nejvyšší vrstvy proměnných
         if (!$block instanceof Main) {
             array_pop($this->variables);
+        }
+    }
+
+    /**
+     * Převede media na typ raw
+     *
+     * @param array
+     * @return array
+     */
+    protected function convertMedia(array $media) {
+        if ($media[0] == 'string') {
+            return array('raw', Compiler::stringDecode($media[1]));
+        } elseif ($media[0] == 'raw') {
+            return $media;
+        } else {
+            throw new Exception("Media musí být řetězec");
         }
     }
 

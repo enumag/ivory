@@ -60,14 +60,7 @@ class Generator extends Object {
             } elseif ($block instanceof FontFace) {
                 echo '@font-face';
             } elseif ($block instanceof Media) {
-                echo '@media ';
-                if ($block->media[0] == 'string') {
-                    echo Compiler::stringDecode($block->media[1]);
-                } elseif ($block->media[0] == 'raw') {
-                    echo $block->media[1];
-                } else {
-                    throw new \Exception("Neimplementováno");
-                }
+                echo '@media ' . $block->media[1];
             } else {
                 throw new \Exception("Neimplementováno");
             }
@@ -94,6 +87,9 @@ class Generator extends Object {
         } elseif (is_array($block) && $block[0] == 'charset' && $block[1][0] == 'string') {
             //@charset
             echo '@charset ' . $block[1][1] . ';' . Compiler::NL;
+        } elseif (is_array($block) && $block[0] == 'import' && $block[1][0] == 'string' && $block[2][0] == 'raw') {
+            //@import
+            echo '@import ' . $block[1][1] . ' ' . $block[2][1] . ';' . Compiler::NL;
         } else {
             throw new \Exception("Neimplementováno");
         }

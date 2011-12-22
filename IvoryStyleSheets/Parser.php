@@ -31,7 +31,7 @@ class Parser extends Object {
             'atInclude',
             'atFontFace',
             'atMedia',
-            //'atImport',
+            'atImport',
             //'atKeyFrames',
             'atCharset',
             'property',
@@ -530,6 +530,25 @@ class Parser extends Object {
                 ($this->expression($media) || TRUE) && //nepovinné
                 $this->end()) {
             $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'include', $path, $media, $this->getLine($x));
+            return TRUE;
+        }
+        $this->setOffset($x);
+        return FALSE;
+    }
+
+    /**
+     * CSS import
+     *
+     * @return bool
+     */
+    protected function atImport() {
+        $x = $this->getOffset();
+        if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
+                $this->char('@import') &&
+                $this->expression($path) &&
+                ($this->expression($media) || TRUE) && //nepovinné
+                $this->end()) {
+            $this->getActualBlock()->properties[] = array(Compiler::$prefixes['special'], 'import', $path, $media, $this->getLine($x));
             return TRUE;
         }
         $this->setOffset($x);
