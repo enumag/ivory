@@ -263,6 +263,9 @@ class Compiler extends Object {
      * @return void
      */
     public function addFunction($name, $function) {
+        if (!preg_match('/^-?[\w]++(?:[\w-]*[\w])?$/', $name)) {
+            throw new \Exception("Chybný název funkce");
+        }
         $this->functions[$name] = $function;
     }
 
