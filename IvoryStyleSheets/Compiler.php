@@ -124,6 +124,13 @@ class Compiler extends Object {
     protected $includePaths;
 
     /**
+     * Globální proměnné
+     *
+     * @var array
+     */
+    protected $variables;
+
+    /**
      * Funkce
      *
      * @var ArrayObject
@@ -159,6 +166,7 @@ class Compiler extends Object {
     public function __construct() {
         $this->defaultUnit = '';
         $this->includePaths = array();
+        $this->variables = array();
         $this->functions = new \ArrayObject();
         $this->prepareFunctions();
         $this->parser = new Parser;
@@ -210,6 +218,40 @@ class Compiler extends Object {
         $path = realpath($path);
         if (!in_array($path, $this->includePaths)) {
             $this->includePaths[] = $path;
+        }
+    }
+
+    /**
+     * Přidá proměnnou typu jednotka
+     *
+     * @param string
+     * @param int|float|bool|string|array
+     * @return void
+     */
+    public function addVariable($name, $value) {
+        if (!preg_match('/^-?[\w]++(?:[\w-]*[\w])?$/', $name)) {
+            throw new \Exception("Chybný název proměnné");
+        }
+        $this->variables[$name] = $this->convertType($value);
+    }
+
+    /**
+     * Převede hodnotu na ISS typ
+     *
+     * @param int|float|bool|string|array
+     * @return array
+     */
+    protected function convertType($value) {
+        if (is_int($value) || is_float($value)) {
+            return array('unit', $value, '');
+        } elseif (is_bool($value)) {
+            return array('bool', $value);
+        } elseif (is_string($value)) {
+            return array('string', self::stringEncode($value));
+        } elseif (is_array($value)) {
+            return array('map', array_map(array($this, 'convertType'), $value));
+        } else {
+            throw new \Exception("Hodnota musí být typu int, float, string, bool nebo array");
         }
     }
 
@@ -267,7 +309,7 @@ class Compiler extends Object {
         setlocale(LC_NUMERIC, "C");
 
         $tree = $this->parser->parse($input);
-        $reduced = $this->analyzer->analyze($tree, $this->includePaths);
+        $reduced = $this->analyzer->analyze($tree, $this->includePaths, $this->variables);
         $output = $this->generator->generate($reduced, $this->defaultUnit);
         
         setlocale(LC_NUMERIC, $locale);

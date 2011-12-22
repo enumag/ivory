@@ -108,7 +108,7 @@ class Analyzer extends Object {
      * @param Main
      * @return array
      */
-    public function &analyze($tree, array $includePaths) {
+    public function &analyze($tree, array $includePaths, array $variables) {
         $this->includePaths = $includePaths;
 
         //prázdný zásobník
@@ -120,8 +120,11 @@ class Analyzer extends Object {
         $this->reduced = array();
         $this->variables = array();
 
-        //TODO: injektovat proměnné z PHP
+        //Globální proměnné
         $this->variables[] = array();
+        foreach ($variables as $name => $value) {
+            $this->saveVariable($name, $value);
+        }
 
         //globální blok
         $this->reduced[] = new Main;
