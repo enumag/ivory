@@ -508,11 +508,14 @@ class Analyzer extends Object {
                 } else {
                     $this->reduceBlock($tree);
                 }
+                $this->removeFile($path);
                 return;
             } elseif ($extension == 'css') {
+                $this->addFile($path);
                 //TODO PHP 5.4: & $this->getReducedContext()[] = file_get_contents($path);
                 $context = & $this->getReducedContext();
                 $context[] = file_get_contents($path);
+                $this->removeFile($path);
                 return;
             }
         }
