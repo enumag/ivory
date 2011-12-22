@@ -280,7 +280,7 @@ class Analyzer extends Object {
      * @return bool
      */
     protected function emptySelectors(array $selectors) {
-        return $selectors == array(0);
+        return count($selectors) == 1;
     }
 
     /**
