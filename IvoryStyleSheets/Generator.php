@@ -91,17 +91,9 @@ class Generator extends Object {
         } elseif (is_string($block)) {
             //surové CSS
             echo $block;
-        } elseif (is_array($block) && $block[0] == 'charset') {
+        } elseif (is_array($block) && $block[0] == 'charset' && $block[1][0] == 'string') {
             //@charset
-            echo '@charset ';
-            if ($block[1][0] == 'string') {
-                echo Compiler::stringDecode($block[1][1]);
-            } elseif ($block[1][0] == 'raw') {
-                echo $block[1][1];
-            } else {
-                throw new \Exception("Neimplementováno");
-            }
-            echo ';' . Compiler::NL;
+            echo '@charset ' . $block[1][1] . ';' . Compiler::NL;
         } else {
             throw new \Exception("Neimplementováno");
         }
