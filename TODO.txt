@@ -3,6 +3,4 @@
 - accessory
 - @import
 - @...
-- funkce calc
 - předdefinované funkce
-- vkládání proměnných z PHP
