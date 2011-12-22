@@ -404,7 +404,7 @@ class Parser extends Object {
          * )?                                   #na konci selektoru samozřejmě žádný znak > být nemusí, takže celá konstrukce je nepovinná
          */
         if ($this->match('(?:>?(?:[^][@$\/\\%<>,;{}\'"]++|\\[[^]]++\\]|<\\$-?[\w]++(?:[\w-]*[\w])?>))+(?:>*+(?<!>>))?', $matches)) {
-             $selector = preg_replace_callback('/\\[[^]]++\\]|\\s++([+>~])\\s++|\\s++/', function (array $matches) {
+             $selector = preg_replace_callback('/\\[[^]]++\\]|\\s*+([+>~])\\s*+|\\s++/', function (array $matches) {
                 if (count($matches) == 2) {
                     return $matches[1];
                 } elseif (preg_match('/^\\s++$/', $matches[0])) {
