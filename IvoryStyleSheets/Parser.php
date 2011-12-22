@@ -189,15 +189,15 @@ class Parser extends Object {
             $return = TRUE;
             if ($this->char('>>')) {
                 if (!$this->selectors($selectors)) {
-                    $selectors = array('');
+                    $selectors = array(array('', 0));
                 }
             } else {
                 $selectors = $prefixes;
-                $prefixes = array('');
+                $prefixes = array(array('', 0));
             }
         } else {
-            $selectors = array('');
-            $prefixes = array('');
+            $selectors = array(array('', 0));
+            $prefixes = array(array('', 0));
         }
         return $return;
     }
@@ -360,7 +360,6 @@ class Parser extends Object {
         if ($last && $last->statement !== NULL && ($last->statement[0] == 'if' || $last->statement[0] == 'elseif')) {
             return $last;
         }
-        return NULL;
     }
 
     /**
@@ -373,8 +372,9 @@ class Parser extends Object {
         $selectors = array();
         while ($this->selector($selector)) {
             $selectors[] = $selector;
-            if (!$this->char(','))
+            if (!$this->char(',')) {
                 break;
+            }
         }
         return count($selectors) > 0;
     }
@@ -403,19 +403,28 @@ class Parser extends Object {
          *     (?<!>>)                          #záporné tvrzení o předcházejícím, pokud znaků > bylo více, nenamatchuje se ani jeden
          * )?                                   #na konci selektoru samozřejmě žádný znak > být nemusí, takže celá konstrukce je nepovinná
          */
+        $line = $this->getLine();
         if ($this->match('(?:>?(?:[^][@$\/\\%<>,;{}\'"]++|\\[[^]]++\\]|<\\$-?[\w]++(?:[\w-]*[\w])?>))+(?:>*+(?<!>>))?', $matches)) {
-             $selector = preg_replace_callback('/\\[[^]]++\\]|\\s*+([+>~])\\s*+|\\s++/', function (array $matches) {
-                if (count($matches) == 2) {
-                    return $matches[1];
-                } elseif (preg_match('/^\\s++$/', $matches[0])) {
-                    return ' ';
-                }
-                return $matches[0];
-             }, trim($matches[0]));
+             $selector = array(preg_replace_callback('/\\[[^]]++\\]|\\s*+([+>~])\\s*+|\\s++/', array($this, 'compressSelectorCallback'), trim($matches[0])), $line);
              return TRUE;
         }
         return FALSE;
     }
+
+    /**
+     * Callback pro odstranění zbytečných znaků ze selektoru
+     *
+     * @param array
+     * @return string
+     */
+    protected function compressSelectorCallback(array $matches) {
+        if (count($matches) == 2) {
+            return $matches[1];
+        } elseif (preg_match('/^\\s++$/', $matches[0])) {
+            return ' ';
+        }
+        return $matches[0];
+     }
 
     /**
      * Sekvence znaků, volitelně bílé znaky

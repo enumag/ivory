@@ -178,7 +178,11 @@ class Analyzer extends Object {
      */
     protected function replaceVariables(array $selectors) {
         foreach ($selectors as &$selector) {
-            $selector = preg_replace_callback('/<\\$(-?[\w]+[\w-]*)>/', array($this, 'replaceVariableCallback'), $selector);
+            try {
+                $selector = preg_replace_callback('/<\\$(-?[\w]+[\w-]*)>/', array($this, 'replaceVariableCallback'), $selector[0]);
+            } catch (Exception $e) {
+                throw $e->setLine($selector[1]);
+            }
         }
         return $selectors;
     }
@@ -204,11 +208,11 @@ class Analyzer extends Object {
         $selectors = array();
         foreach ($parent as $outer) {
             foreach ($child as $inner) {
-                $selectors[] = $outer .
-                        ($inner == '' || $inner[0] == Compiler::SELF_SELECTOR || $outer == '' ? '' : ' ') .
-                        ($inner != '' && $inner[0] == Compiler::SELF_SELECTOR ? substr($inner, 1) : $inner);
+                    $selectors[] = $outer .
+                            ($inner == '' || $inner[0] == Compiler::SELF_SELECTOR || $outer == '' ? '' : ' ') .
+                            ($inner != '' && $inner[0] == Compiler::SELF_SELECTOR ? substr($inner, 1) : $inner);
+                }
             }
-        }
         return $selectors;
     }
 
