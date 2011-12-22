@@ -3,4 +3,3 @@
 - accessory
 - @keyframes
 - předdefinované funkce
-- n-tý selektor aktuálního bloku
