@@ -256,6 +256,16 @@ class Analyzer extends Object {
     }
 
     /**
+     * Zjistí zda je pole selektorů prázdné
+     *
+     * @param array
+     * @return bool
+     */
+    protected function emptySelectors(array $selectors) {
+        return count($selectors) == 1 && $selectors[0][0] == '';
+    }
+
+    /**
      * Redukce stromu
      *
      * @param Block
@@ -281,6 +291,7 @@ class Analyzer extends Object {
             $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors));
         }
 
+        //TODO: zahodit duplicitní selektory
         $reduced = $this->getReduced($block, $selectors);
 
         foreach ($block->properties as $property) {
@@ -293,24 +304,24 @@ class Analyzer extends Object {
                             $this->saveVariable($property[1], $this->reduceValue($property[2]));
                         }
                     } elseif ($property[0] == Compiler::$prefixes['mixin']) {
-                        //TODO: volat $this->reduceValue($property[2]) ? kvůli možnému použití v calc asi ne
+                        //TODO: volat $this->reduceValue($property[2]) ?
                         $this->callMixin($property[1], $property[2], $selectors);
                     } elseif ($property[0] == Compiler::$prefixes['none'] ||
                             $property[0] == Compiler::$prefixes['important'] ||
                             $property[0] == Compiler::$prefixes['raw']) {
                         if ($reduced instanceof Main ||
                                 $reduced instanceof Media ||
-                                ($reduced instanceof Rule && $selectors == array(''))) {
+                                ($reduced instanceof Rule && $this->emptySelectors($selectors))) {
                             throw new Exception("Vlastnost nemůže být v globálním bloku ani v @media bloku");
                         }
                         $reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
                     } elseif ($property[0] == Compiler::$prefixes['special'] && $property[1] == 'include') {
-                        if ($this->inMedia || ($reduced instanceof Rule && $selectors != array(''))) {
+                        if ($this->inMedia || ($reduced instanceof Rule && !$this->emptySelectors($selectors))) {
                             throw new Exception("Include může být jen v globálním bloku");
                         }
                         $this->callInclude($property);
                     } elseif ($property[0] == Compiler::$prefixes['special'] && $property[1] == 'import') {
-                        if ($this->inMedia || ($reduced instanceof Rule && $selectors != array(''))) {
+                        if ($this->inMedia || ($reduced instanceof Rule && !$this->emptySelectors($selectors))) {
                             throw new Exception("Import může být jen v globálním bloku");
                         }
                         $path = $this->reduceValue($property[2]);
