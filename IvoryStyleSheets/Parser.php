@@ -719,7 +719,8 @@ class Parser extends Object {
      * @return bool
      */
     protected function name(&$name) {
-        if ($this->match('(?:-?[\w]++(?:[\w-]*[\w])?)', $matches, FALSE)) {
+        //TODO: musí zde být '(?: ... )' ?
+        if ($this->match('-?[\w]++(?:[\w-]*[\w])?', $matches, FALSE)) {
             $name = $matches[0];
             return TRUE;
         }
@@ -983,7 +984,8 @@ class Parser extends Object {
      * @return bool
      */
     protected function keyword(&$keyword) {
-        if ($this->match('(?:-?[a-z]+[a-z-]*)', $matches)) {
+        //TODO: musí zde být '(?: ... )' ?
+        if ($this->match('-?[a-z]+[a-z-]*', $matches)) {
             $keyword = array('keyword', $matches[0]);
             return TRUE;
         }
