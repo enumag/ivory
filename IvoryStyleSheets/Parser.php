@@ -189,15 +189,15 @@ class Parser extends Object {
             $return = TRUE;
             if ($this->char('>>')) {
                 if (!$this->selectors($selectors)) {
-                    $selectors = array(array('', 0));
+                    $selectors = array();
                 }
             } else {
                 $selectors = $prefixes;
-                $prefixes = array(array('', 0));
+                $prefixes = array();
             }
         } else {
-            $selectors = array(array('', 0));
-            $prefixes = array(array('', 0));
+            $selectors = array();
+            $prefixes = array();
         }
         return $return;
     }

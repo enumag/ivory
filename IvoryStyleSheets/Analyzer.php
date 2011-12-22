@@ -202,17 +202,33 @@ class Analyzer extends Object {
      *
      * @param array
      * @param array
+     * @param int
      * @return array
      */
-    protected function combineSelectors(array $parent, array $child) {
+    protected function combineSelectors(array $parent, array $child, $group = 0) {
+        if (empty($parent) && empty($child)) {
+            return array();
+        }
+        if (empty($parent)) {
+            $parent[] = '';
+        }
+        if (empty($child)) {
+            $child[] = '';
+        }
         $selectors = array();
-        foreach ($parent as $outer) {
+        foreach ($parent as $key => $outer) {
             foreach ($child as $inner) {
-                    $selectors[] = $outer .
-                            ($inner == '' || $inner[0] == Compiler::SELF_SELECTOR || $outer == '' ? '' : ' ') .
-                            ($inner != '' && $inner[0] == Compiler::SELF_SELECTOR ? substr($inner, 1) : $inner);
+                if (preg_match('/^&([0-9]++)(.*+)$/', $inner, $matches)) {
+                    if ($group == 0 || $key % $group + 1 != $matches[1]) {
+                        continue;
+                    }
+                    $inner = '&' . $matches[2];
                 }
+                $selectors[] = $outer .
+                        ($inner == '' || $inner[0] == Compiler::SELF_SELECTOR || $outer == '' ? '' : ' ') .
+                        ($inner != '' && $inner[0] == Compiler::SELF_SELECTOR ? substr($inner, 1) : $inner);
             }
+        }
         return $selectors;
     }
 
@@ -239,6 +255,8 @@ class Analyzer extends Object {
     protected function getReduced(Block $block, array $selectors) {
         $context = & $this->getReducedContext();
         if ($block instanceof NestedRule || $block instanceof Mixin) {
+            array_shift($selectors);
+            $selectors = array_unique($selectors);
             foreach ($context as $reduced) {
                 if ($reduced instanceof Rule && $selectors == $reduced->selectors) {
                     return $reduced;
@@ -262,7 +280,7 @@ class Analyzer extends Object {
      * @return bool
      */
     protected function emptySelectors(array $selectors) {
-        return count($selectors) == 1 && $selectors[0][0] == '';
+        return $selectors == array(0);
     }
 
     /**
@@ -273,7 +291,7 @@ class Analyzer extends Object {
      * @param array
      * @return void
      */
-    protected function reduceBlock(Block $block, array $selectors = array(''), array $variables = array()) {
+    protected function reduceBlock(Block $block, array $selectors = array(), array $variables = array()) {
         //inicializace nové vrstvy proměnných
         if (!$block instanceof Main) {
             $this->variables[] = array();
@@ -287,11 +305,12 @@ class Analyzer extends Object {
         }
 
         if ($block instanceof NestedRule) {
+            $group = array_shift($selectors);
             $selectors = $this->combineSelectors($this->replaceVariables($block->prefixes), $selectors);
-            $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors));
+            $selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors), $group);
+            array_unshift($selectors, count($block->selectors));
         }
 
-        //TODO: zahodit duplicitní selektory
         $reduced = $this->getReduced($block, $selectors);
 
         foreach ($block->properties as $property) {
@@ -483,7 +502,7 @@ class Analyzer extends Object {
                     	break;
                 }
             } catch (Exception $e) {
-                throw $e->seLine($block->statement['line']);
+                throw $e->setLine($block->statement['line']);
             }
         } else {
             //bez řídících struktur
