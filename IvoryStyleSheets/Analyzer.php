@@ -171,8 +171,6 @@ class Analyzer extends Object {
     /**
      * Nahradí proměnné v selektorech jejich hodnotou
      *
-     * @todo PHP 5.4
-     *
      * @param array
      * @return array
      */
@@ -376,7 +374,6 @@ class Analyzer extends Object {
                     throw new Exception("At-rules nesmí obsahovat mixin");
                 }
                 if (array_key_exists($property->name, $this->mixins)) {
-                    //TODO: PHP 5.4
                     $e = new Exception("Mixin '$property->name' již existuje");
                     throw $e->setLine($property->line);
                 }
@@ -536,8 +533,6 @@ class Analyzer extends Object {
     /**
      * Vložení souboru
      *
-     * @todo media
-     *
      * @param string
      * @param string
      * @return void
@@ -571,7 +566,6 @@ class Analyzer extends Object {
                 return;
             } elseif ($extension == 'css') {
                 $this->addFile($path);
-                //TODO PHP 5.4: & $this->getReducedContext()[] = file_get_contents($path);
                 $context = & $this->getReducedContext();
                 $context[] = file_get_contents($path);
                 $this->removeFile($path);
@@ -663,7 +657,6 @@ class Analyzer extends Object {
                 }
             }
         }
-        //TODO: vytvořit pole pokud proměnná neexistuje?
         throw new Exception("Pole '$name' nenalezeno");
     }
 
@@ -720,7 +713,6 @@ class Analyzer extends Object {
                 return (float) $key[1];
             }
         } elseif ($key[0] == 'string') {
-            //řetězec sice kolem sebe má apostrofy, ale to nevadí
             return $key[1];
         }
         //nemělo by nastat
@@ -745,7 +737,7 @@ class Analyzer extends Object {
     /**
      * Zjednodušení hodnoty
      *
-     * @todo accessors
+     * @todo accessor
      *
      * @param array
      * @return array
@@ -951,7 +943,6 @@ class Analyzer extends Object {
      * @return array
      */
     protected function evaluateBinaryOperation($operator, $value1, $value2) {
-        //unit, color, func, string, keyword, raw
         if (in_array($operator, array('&&', '||', '^^'))) {
             switch ($operator) {
                 case '&&':
