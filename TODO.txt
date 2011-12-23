@@ -3,3 +3,7 @@
 - accessory
 - @keyframes
 - předdefinované funkce
+- knihovna mixinů
+- překopat vnitřní práci s řetězci
+- testy
+- příklady
