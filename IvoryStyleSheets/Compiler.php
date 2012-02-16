@@ -107,7 +107,7 @@ class Compiler extends Object {
      *
      * @var string
      */
-    public $cacheFile;
+    //public $cacheFile;
 
     /**
      * Výchozí jednotka
@@ -282,7 +282,7 @@ class Compiler extends Object {
         $output = $this->compileString('@include ' . $file . ';');
         if ($this->outputDirectory) {
             $outputFile = $this->outputDirectory . DIRECTORY_SEPARATOR . $pathinfo['filename'] . '.css';
-            if (!file_put_contents($outputFile, $output)) {
+            if (@file_put_contents($outputFile, $output) === FALSE) {
                 throw new \Exception("Nepodařilo se zapsat do souboru '$outputFile'");
             }
             //TODO: kešovat $this->allFiles, injectované proměnné
