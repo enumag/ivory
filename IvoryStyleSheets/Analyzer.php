@@ -929,7 +929,7 @@ class Analyzer extends Object {
         if ($operator == '!' && in_array($value[0], array('bool', 'unit'))) {
             return array('bool', !$value[1]);
         } elseif (in_array($operator, array('+', '-'))) {
-            return $this->evaluateBinaryOperation($operator, array('unit', 0), $value);
+            return $this->evaluateBinaryOperation($operator, array('unit', 0, ''), $value);
         }
         throw new Exception("Nepovolená operace ($operator $value[0])");
     }
