@@ -109,10 +109,10 @@ class Generator extends Object {
                 return ($number == '' ? 0 : $number) . $this->compileUnit($value, $useDefault);
             case 'args':
                 array_shift($value);
-                return implode(', ', array_map(array($this, 'compileValue'), $value, array_fill(0, count($value), TRUE)));
+                return implode(', ', array_map(array($this, 'compileValue'), $value, array(TRUE)));
             case 'list':
                 array_shift($value);
-                return implode(' ', array_map(array($this, 'compileValue'), $value, array_fill(0, count($value), TRUE)));
+                return implode(' ', array_map(array($this, 'compileValue'), $value, array(TRUE)));
             case 'keyword':
                 return $value[1];
             case 'color':
@@ -121,7 +121,7 @@ class Generator extends Object {
                 }
                 return 'rgba(' . $value[1] . ',' . $value[2] . ',' . $value[3] . ',' . $value[4] . ')';
             case 'function':
-                return $value[1] . '(' . implode(',', array_map(array($this, 'compileValue'), $value[2],  array_fill(0, count($value), TRUE))) . ')';
+                return $value[1] . '(' . implode(',', array_map(array($this, 'compileValue'), $value[2], array(TRUE))) . ')';
             case 'string':
             case 'raw':
                 return $value[1];
