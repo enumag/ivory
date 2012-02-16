@@ -1,4 +1,4 @@
-﻿- složkové API
+- složkové API
 - jak kešovat závislosti?
 - accessory
 - @keyframes
@@ -7,3 +7,20 @@
 - překopat vnitřní práci s řetězci
 - testy
 - příklady
+
+- nové API pro funkce:
+  - prereq: vnitřní práce s řetězci
+
+nyní:
+$ivory->addFunction('img', function (array $value) {
+        if (isset($value[0]) && $value[0] == 'string') {
+            return array('function', 'url', array(array('expression', array('string', "'" . '/design/backgrounds/' . "'"), array('binary', '.'), $value)));
+        }
+    });
+
+nově něco jako:
+$ivory->addFunction('img', function (array $value) {
+        if ($this->isString($value)) {
+            return $this->createFunction('url', '/design/backgrounds/' . $this->getStringValue($value));
+        }
+    });
