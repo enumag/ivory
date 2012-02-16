@@ -81,7 +81,7 @@ foreach ($examples as $key => $value) {
 <?php
 if (isset($_POST['iss'])) {
     echo $_POST['iss'];
-} else {
+} elseif (isset($_GET['input'])) {
     echo file_get_contents(__DIR__ . '/examples/' . $_GET['input'] . '.iss');
 }
 ?>
