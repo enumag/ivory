@@ -472,13 +472,13 @@ class Analyzer extends Object {
                         if ($begin < $end) {
                             for ($i = $begin; $i <= $end; $i++) {
                                 $variables = array();
-                                $variables[] = array($block->statement[1][1], array('unit', $i), $block->statement[1]);
+                                $variables[] = array($block->statement[1][1], array('unit', $i, ''), $block->statement[1]);
                                 $this->reduceBlock($block, $selectors, $variables);
                             }
                         } else {
                             for ($i = $begin; $i >= $end; $i--) {
                                 $variables = array();
-                                $variables[] = array($block->statement[1][1], array('unit', $i), $block->statement[1]);
+                                $variables[] = array($block->statement[1][1], array('unit', $i, ''), $block->statement[1]);
                                 $this->reduceBlock($block, $selectors, $variables);
                             }
                         }
@@ -762,7 +762,7 @@ class Analyzer extends Object {
                     break;
                 case 'variable':
                     if (count($value) == 3) {
-                        $value = $this->findInMap($value[1], $this->valueToIndex($value[2]));
+                        $value = $this->findInMap($value[1], $this->valueToIndex($this->reduceValue($value[2])));
                     } else {
                         $value = $this->findVariable($value[1]);
                     }
