@@ -829,6 +829,10 @@ class Analyzer extends Object {
      * @return array
      */
     protected function evaluateExpression(array $expr) {
+        if ($expr[0] != 'expression') {
+            return $this->reduceValue($expr);
+        }
+
         array_shift($expr);
 
         //převod výrazu do postfixové notace
@@ -913,7 +917,7 @@ class Analyzer extends Object {
         if ($value[0] == 'bool') {
             return $value[1];
         } elseif ($value[0] == 'unit') {
-            return $value[1] == 0;
+            return $value[1] != 0;
         }
         throw new Exception("Výsledkem podmínkového výrazu má být typ unit nebo bool");
     }
@@ -943,7 +947,7 @@ class Analyzer extends Object {
      * @return array
      */
     protected function evaluateBinaryOperation($operator, $value1, $value2) {
-        if (in_array($operator, array('&&', '||', '^^'))) {
+        if (in_array($operator, array('&&', '||', '^^', '='))) {
             switch ($operator) {
                 case '&&':
                     $answer[] = 'bool';
@@ -956,6 +960,10 @@ class Analyzer extends Object {
                 case '^^':
                     $answer[] = 'bool';
                     $answer[] = $value1[1] xor $value2[1];
+                    break;
+                case '=':
+                    $answer[] = 'bool';
+                    $answer[] = $value1[1] == $value2[1];
                     break;
             }
             return $answer;
@@ -1003,10 +1011,6 @@ class Analyzer extends Object {
                 case '.':
                     $answer[] = 'string';
                     $answer[] = '\'' . $value1[1] . $this->generator->compileUnit($value1) . $value2[1] . $this->generator->compileUnit($value2) . '\'';
-                    break;
-                case '=':
-                    $answer[] = 'bool';
-                    $answer[] = $value1[1] == $value2[1];
                     break;
                 case '>':
                     $answer[] = 'bool';
