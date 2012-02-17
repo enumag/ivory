@@ -109,10 +109,10 @@ class Generator extends Object {
                 return ($number == '' ? 0 : $number) . $this->compileUnit($value, $useDefault);
             case 'args':
                 array_shift($value);
-                return implode(', ', array_map(array($this, 'compileValue'), $value, array(TRUE)));
+                return implode(', ', $this->compileList($value, TRUE));
             case 'list':
                 array_shift($value);
-                return implode(' ', array_map(array($this, 'compileValue'), $value, array(TRUE)));
+                return implode(' ', $this->compileList($value, TRUE));
             case 'keyword':
                 return $value[1];
             case 'color':
@@ -121,13 +121,27 @@ class Generator extends Object {
                 }
                 return 'rgba(' . $value[1] . ',' . $value[2] . ',' . $value[3] . ',' . $value[4] . ')';
             case 'function':
-                return $value[1] . '(' . implode(',', array_map(array($this, 'compileValue'), $value[2], array(TRUE))) . ')';
+                return $value[1] . '(' . implode(',', $this->compileList($value[2], TRUE)) . ')';
             case 'string':
             case 'raw':
                 return $value[1];
             default:
                 throw new \Exception("Neimplementováno");
         }
+    }
+
+    /**
+     * Kompiluje pole hodnot
+     *
+     * @param array
+     * @param bool
+     * @return array
+     */
+    protected function compileList(array $list, $useDefault = FALSE) {
+        foreach ($list as &$value) {
+            $value = $this->compileValue($value, $useDefault);
+        }
+        return $list;
     }
 
     /**
