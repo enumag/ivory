@@ -1,4 +1,4 @@
-- složkové API
+﻿- složkové API
 - jak kešovat závislosti?
 - accessory
 - @keyframes
@@ -7,6 +7,9 @@
 - překopat vnitřní práci s řetězci
 - testy
 - příklady
+- type NULL - na výstupu se zahazuje
+- mixin nelze volat s menším počtem parametrů
+- @border-radius mixin
 
 - nové API pro funkce:
   - prereq: vnitřní práce s řetězci
