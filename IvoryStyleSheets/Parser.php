@@ -968,6 +968,8 @@ class Parser extends Object {
     protected function operand(&$operand) {
         // číslo nebo jednotka
         if ($this->unit($operand)) return TRUE;
+        // boolean
+        if ($this->bool($operand)) return TRUE;
         // funkce
         if ($this->func($operand)) return TRUE;
         // proměnná
@@ -1003,6 +1005,25 @@ class Parser extends Object {
         }
         $this->whitespace();
         return TRUE;
+    }
+
+    /**
+     * Boolean
+     *
+     * @param NULL
+     * @return bool
+     */
+    protected function bool(&$bool) {
+        $x = $this->getOffset();
+        if ($this->keyword($keyword)) {
+            $string = strtolower($keyword[1]);
+            if ($string == 'true' || $string == 'false') {
+                $bool = array('bool', $string == 'true');
+                return TRUE;
+            }
+        }
+        $this->setOffset($x);
+        return FALSE;
     }
 
     /**
