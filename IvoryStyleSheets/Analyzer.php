@@ -223,8 +223,11 @@ class Analyzer extends Object {
                     $inner = '&' . $matches[2];
                 }
                 $selectors[] = $outer .
-                        ($inner == '' || in_array(substr($inner, 0, 1), array('+', '>', '~', Compiler::SELF_SELECTOR)) || in_array(substr($outer, -1), array('+', '>', '~', Compiler::SELF_SELECTOR)) || $outer == '' ? '' : ' ') .
-                        ($inner != '' && $inner[0] == Compiler::SELF_SELECTOR ? substr($inner, 1) : $inner);
+                        ($inner == '' ||
+                                in_array(substr($inner, 0, 1), array('+', '>', '~', Compiler::SELF_SELECTOR)) ||
+                                in_array(substr($outer, -1), array('+', '>', '~', Compiler::SELF_SELECTOR)) ||
+                                $outer == '' ? '' : ' ') .
+                        ($inner != '' && substr($inner, 0, 1) == Compiler::SELF_SELECTOR ? substr($inner, 1) : $inner);
             }
         }
         return $selectors;
