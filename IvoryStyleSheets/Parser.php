@@ -1034,7 +1034,7 @@ class Parser extends Object {
      */
     protected function keyword(&$keyword) {
         //TODO: musí zde být '(?: ... )' ?
-        if ($this->match('-?[a-z]+[a-z-]*', $matches)) {
+        if ($this->match('-?[a-z]+[a-z-]*|!important', $matches)) {
             $keyword = array('keyword', $matches[0]);
             return TRUE;
         }
