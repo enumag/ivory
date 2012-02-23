@@ -156,6 +156,7 @@ class Parser extends Object {
     public function parse($input) {
         $this->buffer = $this->removeComments($input);
         $this->resetOffset();
+        $this->condition = NULL;
         $this->stack = new Stack;
         $this->stack->push(new Main);
         $this->whitespace();

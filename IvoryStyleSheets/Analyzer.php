@@ -555,15 +555,15 @@ class Analyzer extends Object {
                 $this->addFile($path);
                 try {
                     $tree = $this->parser->parse(file_get_contents($this->getFile()));
+                    if ($include[3] !== NULL) {
+                        $block = new Media($include[3], $include[4]);
+                        $block->properties = $tree->properties;
+                        $this->reduceBlock($block);
+                    } else {
+                        $this->reduceBlock($tree);
+                    }
                 } catch (Exception $e) {
                     throw $e->setFile($this->getFile());
-                }
-                if ($include[3] !== NULL) {
-                    $block = new Media($include[3], $include[4]);
-                    $block->properties = $tree->properties;
-                    $this->reduceBlock($block);
-                } else {
-                    $this->reduceBlock($tree);
                 }
                 $this->removeFile($path);
                 return;
