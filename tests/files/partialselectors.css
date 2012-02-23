@@ -1,0 +1,14 @@
+strong.class1,
+strong.class2,
+em.class1,
+em.class2 {
+font-size: 10px;
+}
+strong.class1,
+em.class1 {
+color: red;
+}
+strong.class2,
+em.class2 {
+color: green;
+}

@@ -1,0 +1,10 @@
+div#id.class[attr="value"] {
+display: block;
+}
+div#id.class[attr="value"]~a.class2 {
+text-align: justify;
+margin-top: 10px;
+}
+.no-cssgradients>div#id.class[attr="value"] {
+background-color: red;
+}
