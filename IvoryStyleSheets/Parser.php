@@ -1302,7 +1302,7 @@ class Parser extends Object {
                 case '"':
                 case "'":
                     if (preg_match('/' . static::RE_STRING . '/', $text, $m, 0, $count - 1)) {
-                        $count += strlen($m[0]);
+                        $count += strlen($m[0]) - 1;
                     }
                     break;
                 case '//':
