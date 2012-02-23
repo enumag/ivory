@@ -754,7 +754,7 @@ class Analyzer extends Object {
                     foreach ($value as $key => $item) {
                         $value[$key] = $this->reduceValue($item);
                     }
-                    if ($type == 'args' && count($type) == 1) {
+                    if ($type == 'args' && count($value) == 1) {
                         $value = $value[0];
                     } else {
                         array_unshift($value, $type);
