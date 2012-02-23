@@ -85,6 +85,16 @@ class Parser extends Object {
      * @param int
      * @return void
      */
+    protected function resetOffset() {
+        $this->offset = $this->maxOffset = 0;
+    }
+
+    /**
+     * Nastaví pozici v bufferu
+     *
+     * @param int
+     * @return void
+     */
     protected function setOffset($offset) {
         $this->offset = $offset;
         if ($this->maxOffset < $offset) {
@@ -145,7 +155,7 @@ class Parser extends Object {
      */
     public function parse($input) {
         $this->buffer = $this->removeComments($input);
-        $this->setOffset(0);
+        $this->resetOffset();
         $this->stack = new Stack;
         $this->stack->push(new Main);
         $this->whitespace();
