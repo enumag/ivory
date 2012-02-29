@@ -894,7 +894,7 @@ class Parser extends Object {
                 $expr[] = $value;
             }
             if ($next && $this->char('(')) {
-                $parens++;
+                ++$parens;
                 $expr[] = '(';
                 continue;
             } elseif ($next && $this->operand($value)) {
@@ -902,7 +902,7 @@ class Parser extends Object {
                 $next = FALSE;
                 continue;
             } elseif (!$next && $parens > 0 && $this->char(')')) {
-                $parens--;
+                --$parens;
                 $expr[] = ')';
                 continue;
             } elseif (!$next && $this->binaryOperator($value)) {

@@ -473,13 +473,13 @@ class Analyzer extends Object {
                         $begin = (int) $begin[1];
                         $end = (int) $end[1];
                         if ($begin < $end) {
-                            for ($i = $begin; $i <= $end; $i++) {
+                            for ($i = $begin; $i <= $end; ++$i) {
                                 $variables = array();
                                 $variables[] = array($block->statement[1][1], array('unit', $i, ''), $block->statement[1]);
                                 $this->reduceBlock($block, $selectors, $variables);
                             }
                         } else {
-                            for ($i = $begin; $i >= $end; $i--) {
+                            for ($i = $begin; $i >= $end; --$i) {
                                 $variables = array();
                                 $variables[] = array($block->statement[1][1], array('unit', $i, ''), $block->statement[1]);
                                 $this->reduceBlock($block, $selectors, $variables);
