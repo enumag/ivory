@@ -47,4 +47,8 @@ class IvoryStyleSheetsTest extends PHPUnit_Framework_TestCase {
         $this->assertCompilerOutput('partialselectors');
     }
 
+	public function testMixin() {
+        $this->assertCompilerOutput('mixin');
+    }
+
 }
