@@ -298,7 +298,7 @@ class Analyzer extends Object {
             $this->variables[] = array();
             foreach ($variables as $variable) {
                 try {
-                    $this->saveVariable($variable[0], $this->reduceValue($variable[1]));
+                    $this->saveVariable($variable[0], $this->reduceValue($variable[1]), $block instanceof Mixin);
                 } catch (Exception $e) {
                     throw $e->setLine(end($variable));
                 }
@@ -629,18 +629,23 @@ class Analyzer extends Object {
      *
      * @param string
      * @param array
+     * @param bool
      * @return void
      */
-    protected function saveVariable($name, $value) {
-        foreach ($this->variables as $layer => $variables) {
-            foreach ($variables as $key => $_) {
+    protected function saveVariable($name, $value, $force = FALSE) {
+		if ($force) {
+			$this->variables[count($this->variables) - 1][$name] = $value;
+			return;
+		}
+		for ($i = count($this->variables) - 1; $i >= 0; --$i) {
+            foreach ($this->variables[$i] as $key => $_) {
                 if ($name == $key) {
-                    $this->variables[$layer][$key] = $value;
+                    $this->variables[$i][$key] = $value;
                     return;
                 }
             }
         }
-        $this->variables[$layer][$name] = $value;
+        $this->saveVariable($name, $value, TRUE);
     }
 
     /**
@@ -670,8 +675,8 @@ class Analyzer extends Object {
      * @return array
      */
     protected function findVariable($name) {
-        foreach ($this->variables as $variables) {
-            foreach ($variables as $key => $value) {
+		for ($i = count($this->variables) - 1; $i >= 0; --$i) {
+			foreach ($this->variables[$i] as $key => $value) {
                 if ($name == $key) {
                     return $value;
                 }
