@@ -380,6 +380,7 @@ class Analyzer extends Object {
 					$e = new Exception("Mixin '$property->name' již existuje");
 					throw $e->setLine($property->line);
 				}
+				$property->file = $this->getFile();
 				$this->mixins[$property->name] = $property;
 			} elseif ($property instanceof Media) {
 				try {
@@ -530,7 +531,11 @@ class Analyzer extends Object {
 		foreach ($mixin->args as $key => $default) {
 			$args[] = array($key, count($list) > 0 ? array_shift($list) : ($default[0] === NULL ? array('bool', FALSE) : $default[0]), $default[1]);
 		}
-		$this->reduceBlock($mixin, $selectors, $args);
+		try {
+			$this->reduceBlock($mixin, $selectors, $args);
+		} catch (Exception $e) {
+			throw $e->setFile($mixin->file);
+		}
 	}
 
 	/**
@@ -563,7 +568,10 @@ class Analyzer extends Object {
 						$this->reduceBlock($tree);
 					}
 				} catch (Exception $e) {
-					throw $e->setFile($this->getFile());
+					if ($e->getFile() === NULL) {
+						$e->setFile($this->getFile());
+					}
+					throw $e;
 				}
 				$this->removeFile($path);
 				return;

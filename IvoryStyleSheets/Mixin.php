@@ -24,6 +24,11 @@ class Mixin extends Block {
 	public $args;
 
 	/**
+	 * @var string
+	 */
+	public $file;
+
+	/**
 	 * @var int
 	 */
 	public $line;
