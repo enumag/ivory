@@ -4,7 +4,7 @@ Mohou být i parametrizované, parametry se při volání oddělují mezerou, v 
 
 Deklarace:
 @nazev-mixinu( parametry ) {
-    //vlastnosti, vnořené bloky
+	//vlastnosti, vnořené bloky
 }
 
 Volání:
@@ -14,35 +14,35 @@ Volání:
 
 //Příklad použití kvůli vendor prefixům
 @ellipsis() {
-    white-space: nowrap;
-    overflow: hidden;
-    -ms-text-overflow: ellipsis;
-    -o-text-overflow: ellipsis;
-    text-overflow: ellipsis;
-    text-overflow: ellipsis-word;
+	white-space: nowrap;
+	overflow: hidden;
+	-ms-text-overflow: ellipsis;
+	-o-text-overflow: ellipsis;
+	text-overflow: ellipsis;
+	text-overflow: ellipsis-word;
 }
 
 //CSS self-clearing
 @self-clear() {
-    zoom: 1; //IE
-    :after {
-        content: '';
-        display: block;
-        clear: both;
-    }
+	zoom: 1; //IE
+	:after {
+		content: '';
+		display: block;
+		clear: both;
+	}
 }
 
 //Příklad s parametry včetně výchozích hodnot
 @size($width: auto, $height: $width) {
-    width: $width;
-    height: $height;
+	width: $width;
+	height: $height;
 }
 
 //Ukázky volání mixinů
 .block {
-    @size: 100px;
-    @self-clear;
-    span {
-        @ellipsis;
-    }
+	@size: 100px;
+	@self-clear;
+	span {
+		@ellipsis;
+	}
 }

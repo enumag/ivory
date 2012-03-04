@@ -13,16 +13,16 @@ namespace Ivory\StyleSheets;
  */
 abstract class Block extends Object {
 
-    /**
-     * @var array
-     */
-    public $properties;
+	/**
+	 * @var array
+	 */
+	public $properties;
 
-    /**
-     * @return void
-     */
-    public function __construct() {
-        $this->properties = array();
-    }
+	/**
+	 * @return void
+	 */
+	public function __construct() {
+		$this->properties = array();
+	}
 
 }

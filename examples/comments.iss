@@ -4,8 +4,8 @@ Na výstupu se samozřejmě neobjeví
 */
 
 body {
-    /*
-        css comment
-    */
-    background-color: black; //inline iss comment
+	/*
+		css comment
+	*/
+	background-color: black; //inline iss comment
 }

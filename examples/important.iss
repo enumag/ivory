@@ -3,5 +3,5 @@ Místo dlouhého !important na konci vlastnosti, stačí přidat prefix "!".
 */
 
 * {
-    !font-size: 20px;
+	!font-size: 20px;
 }

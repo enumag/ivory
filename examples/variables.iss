@@ -6,6 +6,6 @@ Proměnné lze libovolně používat ve výrazech. Platnost proměnných je vžd
 $width: 100px;
 
 .block {
-    width: $width;
-    padding: $width / 10 - (2 * 1);
+	width: $width;
+	padding: $width / 10 - (2 * 1);
 }

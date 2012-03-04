@@ -13,32 +13,32 @@ namespace Ivory\StyleSheets;
  */
 class Mixin extends Block {
 
-    /**
-     * @var string
-     */
-    public $name;
+	/**
+	 * @var string
+	 */
+	public $name;
 
-    /**
-     * @var array
-     */
-    public $args;
+	/**
+	 * @var array
+	 */
+	public $args;
 
-    /**
-     * @var int
-     */
-    public $line;
+	/**
+	 * @var int
+	 */
+	public $line;
 
-    /**
-     * @param string
-     * @param array
-     * @param int
-     * @return void
-     */
-    public function __construct($name, array $args, $line) {
-        parent::__construct();
-        $this->name = $name;
-        $this->args = $args;
-        $this->line = $line;
-    }
+	/**
+	 * @param string
+	 * @param array
+	 * @param int
+	 * @return void
+	 */
+	public function __construct($name, array $args, $line) {
+		parent::__construct();
+		$this->name = $name;
+		$this->args = $args;
+		$this->line = $line;
+	}
 
 }

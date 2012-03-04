@@ -13,18 +13,18 @@ namespace Ivory\StyleSheets;
  */
 class Rule extends Block {
 
-    /**
-     * @var array
-     */
-    public $selectors;
+	/**
+	 * @var array
+	 */
+	public $selectors;
 
-    /**
-     * @param array
-     * @return void
-     */
-    public function __construct(array $selectors) {
-        parent::__construct();
-        $this->selectors = $selectors;
-    }
+	/**
+	 * @param array
+	 * @return void
+	 */
+	public function __construct(array $selectors) {
+		parent::__construct();
+		$this->selectors = $selectors;
+	}
 
 }

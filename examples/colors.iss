@@ -5,10 +5,10 @@ Kromě toho lze použít i Microsoftí syntaxi #rrggbbaa, kde aa je zadané hexa
 */
 
 .colors {
-    color: #000; //rgb
-    background-color: #FF; //short iss rgb
-    border-color: #12345678; //microsoft rgba syntax
-    &:hover {
-        color: #F00-50; //iss rgba
-    }
+	color: #000; //rgb
+	background-color: #FF; //short iss rgb
+	border-color: #12345678; //microsoft rgba syntax
+	&:hover {
+		color: #F00-50; //iss rgba
+	}
 }

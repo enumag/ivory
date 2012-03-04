@@ -4,15 +4,15 @@ Pozor na priority pravidel!
 */
 
 div {
-    > a {
-        color: black;
-    }
+	> a {
+		color: black;
+	}
 }
 
 a {
-    font-size: 2rem;
+	font-size: 2rem;
 }
 
 div > a {
-    background-color: white;
+	background-color: white;
 }

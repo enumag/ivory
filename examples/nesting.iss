@@ -3,14 +3,14 @@ Bloky lze vnořovat do libovolné úrovně, pro každý blok se použijí i sele
 */
 
 #header {
-  color: black;
+	color: black;
 
-  .navigation {
-    font-size: 12px;
-  }
-  .logo {
-    width: 300px;
-    :hover { text-decoration: none; } // .logo :hover
-    &:hover { text-decoration: none; } // .logo:hover
-  }
+	.navigation {
+		font-size: 12px;
+	}
+	.logo {
+		width: 300px;
+		:hover { text-decoration: none; } // .logo :hover
+		&:hover { text-decoration: none; } // .logo:hover
+	}
 }
