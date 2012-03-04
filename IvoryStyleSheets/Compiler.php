@@ -222,7 +222,7 @@ class Compiler extends Object {
 	}
 
 	/**
-	 * Přidá proměnnou typu jednotka
+	 * Přidá proměnnou
 	 *
 	 * @param string
 	 * @param int|float|bool|string|array
