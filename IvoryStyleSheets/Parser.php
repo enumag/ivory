@@ -544,7 +544,7 @@ class Parser extends Object {
 	 */
 	protected function atInclude() {
 		$x = $this->getOffset();
-		if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin) &&
+		if (($this->getActualBlock() instanceof Main || $this->getActualBlock() instanceof Mixin || $this->getActualBlock() instanceof NestedRule) &&
 				$this->char('@include') &&
 				$this->expression($path) &&
 				($this->expression($media) || TRUE) && //nepovinné
