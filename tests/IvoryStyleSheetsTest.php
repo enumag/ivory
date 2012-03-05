@@ -44,11 +44,11 @@ class IvoryStyleSheetsTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testMapAccessVariable() {
-		$this->assertCompilerOutput('mapaccessvariable');
+		$this->assertCompilerOutput('map-access-variable');
 	}
 
 	public function testPartialSelectors() {
-		$this->assertCompilerOutput('partialselectors');
+		$this->assertCompilerOutput('partial-selectors');
 	}
 
 	public function testMixin() {
@@ -57,15 +57,19 @@ class IvoryStyleSheetsTest extends PHPUnit_Framework_TestCase {
 
 	public function testMixinUndefinedVariable() {
 		try {
-			$this->ivory->addVariable('include', array('mixinundefinedvariable', 'mixinundefinedvariablecall'));
+			$this->ivory->addVariable('include', array('mixin-undefined-variable', 'mixin-undefined-variable-call'));
 			$this->ivory->compileFile(__DIR__ . '/files/include.iss');
 		} catch (Exception $e) {
 			$this->assertInstanceOf('\Ivory\StyleSheets\Exception', $e);
-			$this->assertSame('mixinundefinedvariable', pathinfo($e->getFile(), PATHINFO_FILENAME));
+			$this->assertSame('mixin-undefined-variable', pathinfo($e->getFile(), PATHINFO_FILENAME));
 			$this->assertEquals($e->getLine(), 9);
 			return;
 		}
 		$this->fail();
+	}
+
+	public function testExpressionWithUnits() {
+		$this->assertCompilerOutput('expression-with-units');
 	}
 
 }
