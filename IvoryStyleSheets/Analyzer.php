@@ -917,6 +917,9 @@ class Analyzer extends Object {
 	 * @return string
 	 */
 	protected function getUnit($value1, $value2) {
+		if ($value1[2] == $value2[2]) {
+			return $value1[2];
+		}
 		if (!$this->isInteger($value1) && !$this->isInteger($value2)) {
 			throw new Exception("Nelze provádět operaci s jednotkami '$value1[2]' a '$value2[2]'");
 		}
