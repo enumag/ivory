@@ -72,4 +72,12 @@ class IvoryStyleSheetsTest extends PHPUnit_Framework_TestCase {
 		$this->assertCompilerOutput('expression-with-units');
 	}
 
+	public function testWhile() {
+		$this->assertCompilerOutput('while');
+	}
+
+	public function testFor() {
+		$this->assertCompilerOutput('for');
+	}
+
 }
