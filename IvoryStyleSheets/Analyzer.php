@@ -365,7 +365,7 @@ class Analyzer extends Object {
 						throw new \Exception("Neimplementováno");
 					}
 				} catch (Exception $e) {
-					throw $e->setLine((string) end($property));
+					throw $e->setLine(end($property));
 				}
 			} elseif ($property instanceof NestedRule) {
 				if ($reduced instanceof AtRule && !$reduced instanceof Media) {
