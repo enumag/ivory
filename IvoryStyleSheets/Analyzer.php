@@ -568,10 +568,7 @@ class Analyzer extends Object {
 						$this->reduceBlock($tree);
 					}
 				} catch (Exception $e) {
-					if ($e->getFile() === NULL) {
-						$e->setFile($this->getFile());
-					}
-					throw $e;
+					throw $e->setFile($this->getFile());
 				}
 				$this->removeFile($path);
 				return;
