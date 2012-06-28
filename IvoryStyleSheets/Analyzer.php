@@ -526,8 +526,8 @@ class Analyzer extends Object {
 		$list = $this->valueToArgs($value);
 		$mixin = $this->mixins[$name];
 		$args = array();
-		$args[] = array('_argc', array('unit', count($list), ''));
-		$args[] = array('_argv', $value);
+		$args[] = array('_argc', array('unit', count($list), ''), $mixin->line);
+		$args[] = array('_argv', $value, $mixin->line);
 		foreach ($mixin->args as $key => $default) {
 			$args[] = array($key, count($list) > 0 ? array_shift($list) : ($default[0] === NULL ? array('bool', FALSE) : $default[0]), $default[1]);
 		}
