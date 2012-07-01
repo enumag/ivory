@@ -99,7 +99,7 @@ class Analyzer extends Object {
 		$this->parser = $parser;
 		$this->generator = $generator;
 		$this->functions = $functions;
-		
+
 	}
 
 	/**
@@ -963,7 +963,7 @@ class Analyzer extends Object {
 	 * @return array
 	 */
 	protected function evaluateBinaryOperation($operator, $value1, $value2) {
-		if (in_array($operator, array('&&', '||', '^^', '='))) {
+		if (in_array($operator, array('&&', '||', '^^', '=', '!='))) {
 			switch ($operator) {
 				case '&&':
 					$answer[] = 'bool';
@@ -980,6 +980,10 @@ class Analyzer extends Object {
 				case '=':
 					$answer[] = 'bool';
 					$answer[] = $value1[1] == $value2[1];
+					break;
+				case '!=':
+					$answer[] = 'bool';
+					$answer[] = $value1[1] != $value2[1];
 					break;
 			}
 			return $answer;
@@ -1045,7 +1049,6 @@ class Analyzer extends Object {
 					$answer[] = $value1[1] <= $value2[1];
 					break;
 				case '<>':
-				case '!=':
 					$answer[] = 'bool';
 					$answer[] = $value1[1] != $value2[1];
 					break;
