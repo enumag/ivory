@@ -1,0 +1,22 @@
+{
+	"name": "enumag/ivoryStyleSheets",
+	"type": "library",
+	"description": "IvoryStyleSheets compiler for PHP",
+	"license": [
+		"MIT",
+		"LGPL",
+		"BSD-3"
+	],
+	"require": {
+		"php": ">=5.3.2"
+	},
+	"authors": [
+		{
+			"name": "Jáchym Toušek",
+			"email": "enumag@gmail.com"
+		}
+	],
+	"autoload": {
+		"classmap": ["IvoryStyleSheets/"]
+	}
+}
