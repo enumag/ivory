@@ -1,0 +1,6 @@
+/.idea/
+/nbproject/
+/composer.lock
+
+!.htaccess
+!.gitignore
