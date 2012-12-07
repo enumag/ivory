@@ -1,8 +1,8 @@
 <?php
 
 spl_autoload_register(function ($class) {
-	$namespace = 'Ivory\\StyleSheets\\';
+	$namespace = 'Ivory\\';
 	if (substr($class, 0, strlen($namespace)) == $namespace) {
-		require_once __DIR__ . '/../IvoryStyleSheets/' . substr($class, strlen($namespace)) . '.php';
+		require_once __DIR__ . '/../Ivory/' . substr($class, strlen($namespace)) . '.php';
 	}
 });

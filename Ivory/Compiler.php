@@ -6,10 +6,10 @@
  * @copyright (c) 2011 Jáchym Toušek
  */
 
-namespace Ivory\StyleSheets;
+namespace Ivory;
 
 /**
- * Kompilátor IvoryStyleSheets
+ * Kompilátor Ivory
  *
  * @author Jáchym Toušek
  */
@@ -140,21 +140,21 @@ class Compiler extends Object {
 	/**
 	 * Parser
 	 *
-	 * @var Ivory\StyleSheets\Parser
+	 * @var Ivory\Parser
 	 */
 	protected $parser;
 
 	/**
 	 * Analyzér
 	 *
-	 * @var Ivory\StyleSheets\Analyzer
+	 * @var Ivory\Analyzer
 	 */
 	protected $analyzer;
 
 	/**
 	 * Generátor
 	 *
-	 * @var Ivory\StyleSheets\Generator
+	 * @var Ivory\Generator
 	 */
 	protected $generator;
 

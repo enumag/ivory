@@ -6,7 +6,7 @@
  * @copyright (c) 2011 Jáchym Toušek
  */
 
-namespace Ivory\StyleSheets;
+namespace Ivory;
 
 /**
  * @author Jáchym Toušek

@@ -6,12 +6,12 @@
  * @copyright (c) 2011 Jáchym Toušek
  */
 
-namespace Ivory\StyleSheets;
+namespace Ivory;
 
 /**
  * @author Jáchym Toušek
  */
-class Exception extends \Exception {
+class CompileException extends \Exception {
 
 	/**
 	 * Konstruktor
@@ -28,7 +28,7 @@ class Exception extends \Exception {
 	 * Nastaví řádek
 	 *
 	 * @param int
-	 * @return Ivory\StyleSheets\Exception
+	 * @return Ivory\CompileException
 	 */
 	public function setLine($line) {
 		if (!ctype_digit((string) $line)) {
@@ -45,7 +45,7 @@ class Exception extends \Exception {
 	 * Nastaví název souboru
 	 *
 	 * @param string
-	 * @return Ivory\StyleSheets\Exception
+	 * @return Ivory\CompileException
 	 */
 	public function setFile($file) {
 		if ($this->file === '') {

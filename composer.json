@@ -1,7 +1,7 @@
 {
-	"name": "enumag/ivoryStyleSheets",
+	"name": "enumag/ivory",
 	"type": "library",
-	"description": "IvoryStyleSheets compiler for PHP",
+	"description": "Ivory compiler for PHP",
 	"license": [
 		"MIT",
 		"LGPL",
@@ -20,6 +20,6 @@
 		}
 	],
 	"autoload": {
-		"classmap": ["IvoryStyleSheets/"]
+		"classmap": ["Ivory/"]
 	}
 }

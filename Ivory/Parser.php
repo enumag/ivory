@@ -6,10 +6,10 @@
  * @copyright (c) 2011 Jáchym Toušek
  */
 
-namespace Ivory\StyleSheets;
+namespace Ivory;
 
 /**
- * Parser IvoryStyleSheets
+ * Parser Ivory
  *
  * @author Jáchym Toušek
  */
@@ -142,7 +142,7 @@ class Parser extends Object {
 	 * @return void
 	 */
 	protected function throwError($message, $line) {
-		$exception = new Exception($message);
+		$exception = new CompileException($message);
 		$exception->setLine($line);
 		throw $exception;
 	}

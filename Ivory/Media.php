@@ -6,27 +6,17 @@
  * @copyright (c) 2011 Jáchym Toušek
  */
 
-namespace Ivory\StyleSheets;
+namespace Ivory;
 
 /**
  * @author Jáchym Toušek
  */
-class Mixin extends Block {
-
-	/**
-	 * @var string
-	 */
-	public $name;
+class Media extends AtRule {
 
 	/**
 	 * @var array
 	 */
-	public $args;
-
-	/**
-	 * @var string
-	 */
-	public $file;
+	public $media;
 
 	/**
 	 * @var int
@@ -34,15 +24,13 @@ class Mixin extends Block {
 	public $line;
 
 	/**
-	 * @param string
 	 * @param array
 	 * @param int
 	 * @return void
 	 */
-	public function __construct($name, array $args, $line) {
+	public function __construct(array $media = NULL, $line) {
 		parent::__construct();
-		$this->name = $name;
-		$this->args = $args;
+		$this->media = $media;
 		$this->line = $line;
 	}
 

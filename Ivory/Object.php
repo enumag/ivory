@@ -6,10 +6,10 @@
  * @copyright (c) 2011 Jáchym Toušek
  */
 
-namespace Ivory\StyleSheets;
+namespace Ivory;
 
 /**
- * Objekt IvoryStyleSheets
+ * Objekt Ivory
  *
  * @author Jáchym Toušek
  */

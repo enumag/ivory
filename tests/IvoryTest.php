@@ -4,16 +4,16 @@ namespace Tests;
 
 use \PHPUnit_Framework_TestCase;
 
-use \Ivory\StyleSheets\Compiler;
-use \Ivory\StyleSheets\Exception;
+use \Ivory\Compiler;
+use \Ivory\CompileException;
 
-class IvoryStyleSheetsTest extends PHPUnit_Framework_TestCase {
+class IvoryTest extends PHPUnit_Framework_TestCase {
 
 	protected $ivory;
 
 	public function setUp() {
 		parent::setUp();
-		$this->ivory = new \Ivory\StyleSheets\Compiler();
+		$this->ivory = new \Ivory\Compiler();
 		$this->ivory->outputDirectory = __DIR__ . '/output';
 		file_put_contents($this->ivory->outputDirectory . '/exceptions.txt', '');
 	}
@@ -59,8 +59,8 @@ class IvoryStyleSheetsTest extends PHPUnit_Framework_TestCase {
 		try {
 			$this->ivory->addVariable('include', array('mixin-undefined-variable', 'mixin-undefined-variable-call'));
 			$this->ivory->compileFile(__DIR__ . '/files/include.iss');
-		} catch (Exception $e) {
-			$this->assertInstanceOf('\Ivory\StyleSheets\Exception', $e);
+		} catch (CompileException $e) {
+			$this->assertInstanceOf('\Ivory\CompileException', $e);
 			$this->assertSame('mixin-undefined-variable', pathinfo($e->getFile(), PATHINFO_FILENAME));
 			$this->assertEquals($e->getLine(), 9);
 			return;

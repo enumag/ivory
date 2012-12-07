@@ -29,7 +29,7 @@ $examples = array(
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>IvoryStyleSheets</title>
+    <title>Ivory</title>
     <meta name="author" content="Jáchym Toušek">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script>
@@ -63,7 +63,7 @@ textarea {
 </head>
 <body>
 
-<h1>IvoryStyleSheets</h1>
+<h1>Ivory</h1>
 
 <h2>Příklady</h2>
 

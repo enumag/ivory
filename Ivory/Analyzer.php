@@ -6,10 +6,10 @@
  * @copyright (c) 2011 Jáchym Toušek
  */
 
-namespace Ivory\StyleSheets;
+namespace Ivory;
 
 /**
- * Analyzér IvoryStyleSheets
+ * Analyzér Ivory
  *
  * @author Jáchym Toušek
  */
@@ -67,14 +67,14 @@ class Analyzer extends Object {
 	/**
 	 * Parser
 	 *
-	 * @var Ivory\StyleSheets\Parser
+	 * @var Ivory\Parser
 	 */
 	protected $parser;
 
 	/**
 	 * Generátor
 	 *
-	 * @var Ivory\StyleSheets\Generator
+	 * @var Ivory\Generator
 	 */
 	protected $generator;
 
@@ -88,8 +88,8 @@ class Analyzer extends Object {
 	/**
 	 * Konstruktor
 	 *
-	 * @param Ivory\StyleSheets\Parser
-	 * @param Ivory\StyleSheets\Generator
+	 * @param Ivory\Parser
+	 * @param Ivory\Generator
 	 * @param ArrayObject
 	 * @return void
 	 */
@@ -153,7 +153,7 @@ class Analyzer extends Object {
 	protected function addFile($file) {
 		$path = realpath($file);
 		if ($this->files->contains($path)) {
-			throw new Exception("Rekurzivní vkládání souboru '$file'");
+			throw new CompileException("Rekurzivní vkládání souboru '$file'");
 		}
 		$this->allFiles[] = $path;
 		$this->files->push($path);
@@ -178,7 +178,7 @@ class Analyzer extends Object {
 		foreach ($selectors as &$selector) {
 			try {
 				$selector = preg_replace_callback('/<\\$(-?[\w]+[\w-]*)>/', array($this, 'replaceVariableCallback'), $selector[0]);
-			} catch (Exception $e) {
+			} catch (CompileException $e) {
 				throw $e->setLine($selector[1]);
 			}
 		}
@@ -299,7 +299,7 @@ class Analyzer extends Object {
 			foreach ($variables as $variable) {
 				try {
 					$this->saveVariable($variable[0], $this->reduceValue($variable[1]), $block instanceof Mixin);
-				} catch (Exception $e) {
+				} catch (CompileException $e) {
 					throw $e->setLine(end($variable));
 				}
 			}
@@ -332,52 +332,52 @@ class Analyzer extends Object {
 						if ($reduced instanceof Main ||
 								$reduced instanceof Media ||
 								($reduced instanceof Rule && $this->emptySelectors($selectors))) {
-							throw new Exception("Vlastnost nemůže být v globálním bloku ani v @media bloku");
+							throw new CompileException("Vlastnost nemůže být v globálním bloku ani v @media bloku");
 						}
 						$reduced->properties[] = array($property[0], $property[1], $this->reduceValue($property[2]));
 					} elseif ($property[0] == Compiler::$prefixes['special'] && $property[1] == 'include') {
 						if ($this->inMedia || ($reduced instanceof Rule && !$this->emptySelectors($selectors))) {
-							throw new Exception("Include může být jen v globálním bloku");
+							throw new CompileException("Include může být jen v globálním bloku");
 						}
 						$this->callInclude($property);
 					} elseif ($property[0] == Compiler::$prefixes['special'] && $property[1] == 'import') {
 						if ($this->inMedia || ($reduced instanceof Rule && !$this->emptySelectors($selectors))) {
-							throw new Exception("Import může být jen v globálním bloku");
+							throw new CompileException("Import může být jen v globálním bloku");
 						}
 						$path = $this->reduceValue($property[2]);
 						if ($path[0] !== 'string') {
-							throw new Exception("Název vkládaného souboru musí být řetězec");
+							throw new CompileException("Název vkládaného souboru musí být řetězec");
 						}
 						$media = $this->convertMedia($this->reduceValue($property[3]));
 						$context = & $this->getReducedContext();
 						$context[] = array('import', $path, $media);
 					} elseif ($property[0] == Compiler::$prefixes['special'] && $property[1] == 'charset') {
 						if (!$reduced instanceof Main) {
-							throw new Exception("Charset může být jen v globálním bloku");
+							throw new CompileException("Charset může být jen v globálním bloku");
 						}
 						$value = $this->reduceValue($property[2]);
 						if ($value[0] !== 'string') {
-							throw new Exception("Název kódování musí být řetězec");
+							throw new CompileException("Název kódování musí být řetězec");
 						}
 						$context = & $this->getReducedContext();
 						$context[] = array('charset', $value);
 					} else {
 						throw new \Exception("Neimplementováno");
 					}
-				} catch (Exception $e) {
+				} catch (CompileException $e) {
 					throw $e->setLine(end($property));
 				}
 			} elseif ($property instanceof NestedRule) {
 				if ($reduced instanceof AtRule && !$reduced instanceof Media) {
-					throw new Exception("S výjimkou @media at-rules nesmí obsahovat pravidlo");
+					throw new CompileException("S výjimkou @media at-rules nesmí obsahovat pravidlo");
 				}
 				$this->callBlock($property, $selectors);
 			} elseif ($property instanceof Mixin) {
 				if ($reduced instanceof AtRule) {
-					throw new Exception("At-rules nesmí obsahovat mixin");
+					throw new CompileException("At-rules nesmí obsahovat mixin");
 				}
 				if (array_key_exists($property->name, $this->mixins)) {
-					$e = new Exception("Mixin '$property->name' již existuje");
+					$e = new CompileException("Mixin '$property->name' již existuje");
 					throw $e->setLine($property->line);
 				}
 				$property->file = $this->getFile();
@@ -385,7 +385,7 @@ class Analyzer extends Object {
 			} elseif ($property instanceof Media) {
 				try {
 					$property->media = $this->convertMedia($this->reduceValue($property->media));
-				} catch (Exception $e) {
+				} catch (CompileException $e) {
 					throw $e->setLine($property->line);
 				}
 				$this->reduceBlock($property);
@@ -418,7 +418,7 @@ class Analyzer extends Object {
 		} elseif ($media[0] == 'raw') {
 			return $media;
 		} else {
-			throw new Exception("Media musí být řetězec");
+			throw new CompileException("Media musí být řetězec");
 		}
 	}
 
@@ -466,10 +466,10 @@ class Analyzer extends Object {
 						$begin = $this->reduceValue($block->statement[2]);
 						$end = $this->reduceValue($block->statement[3]);
 						if (!$this->isInteger($begin)) {
-							throw new Exception("Počáteční hodnota for cyklu není číslo");
+							throw new CompileException("Počáteční hodnota for cyklu není číslo");
 						}
 						if (!$this->isInteger($end)) {
-							throw new Exception("Koncová hodnota for cyklu není číslo");
+							throw new CompileException("Koncová hodnota for cyklu není číslo");
 						}
 						$begin = (int) $begin[1];
 						$end = (int) $end[1];
@@ -502,7 +502,7 @@ class Analyzer extends Object {
 						throw new \Exception("Neimplementováno");
 						break;
 				}
-			} catch (Exception $e) {
+			} catch (CompileException $e) {
 				throw $e->setLine($block->statement['line']);
 			}
 		} else {
@@ -521,7 +521,7 @@ class Analyzer extends Object {
 	 */
 	protected function callMixin($name, array $value, array $selectors) {
 		if (!array_key_exists($name, $this->mixins)) {
-			throw new Exception("Mixin '$name' není definován");
+			throw new CompileException("Mixin '$name' není definován");
 		}
 		$list = $this->valueToArgs($value);
 		$mixin = $this->mixins[$name];
@@ -533,7 +533,7 @@ class Analyzer extends Object {
 		}
 		try {
 			$this->reduceBlock($mixin, $selectors, $args);
-		} catch (Exception $e) {
+		} catch (CompileException $e) {
 			throw $e->setFile($mixin->file);
 		}
 	}
@@ -548,7 +548,7 @@ class Analyzer extends Object {
 	protected function callInclude(array $include) {
 		$value = $this->reduceValue($include[2]);
 		if ($value[0] !== 'string') {
-			throw new Exception("Název vkládaného souboru musí být řetězec");
+			throw new CompileException("Název vkládaného souboru musí být řetězec");
 		}
 		$file = Compiler::stringDecode($value[1]);
 		foreach ($this->includePaths as $path) {
@@ -567,7 +567,7 @@ class Analyzer extends Object {
 					} else {
 						$this->reduceBlock($tree);
 					}
-				} catch (Exception $e) {
+				} catch (CompileException $e) {
 					throw $e->setFile($this->getFile());
 				}
 				$this->removeFile($path);
@@ -580,7 +580,7 @@ class Analyzer extends Object {
 				return;
 			}
 		}
-		throw new Exception("Soubor '$file' se nepodařilo vložit");
+		throw new CompileException("Soubor '$file' se nepodařilo vložit");
 	}
 
 	/**
@@ -603,7 +603,7 @@ class Analyzer extends Object {
 	protected function callFunction($name, array $args) {
 		$value = call_user_func_array($this->functions[$name], $args);
 		if (!is_array($value)) {
-			throw new Exception("Funkce '$name' nevrátila pole");
+			throw new CompileException("Funkce '$name' nevrátila pole");
 		}
 		return $value;
 	}
@@ -670,7 +670,7 @@ class Analyzer extends Object {
 				}
 			}
 		}
-		throw new Exception("Pole '$name' nenalezeno");
+		throw new CompileException("Pole '$name' nenalezeno");
 	}
 
 	/**
@@ -687,7 +687,7 @@ class Analyzer extends Object {
 				}
 			}
 		}
-		throw new Exception("Proměnná '$name' neexistuje");
+		throw new CompileException("Proměnná '$name' neexistuje");
 	}
 
 	/**
@@ -704,12 +704,12 @@ class Analyzer extends Object {
 					if (array_key_exists($index, $map[1])) {
 						return $map[1][$index];
 					} else {
-						throw new Exception("Nedefinovaný klíč '$index' v poli '$name'");
+						throw new CompileException("Nedefinovaný klíč '$index' v poli '$name'");
 					}
 				}
 			}
 		}
-		throw new Exception("Pole $name nenalezeno");
+		throw new CompileException("Pole $name nenalezeno");
 	}
 
 	/**
@@ -800,10 +800,10 @@ class Analyzer extends Object {
 						$key = $this->reduceValue($item[0]);
 						$val = $this->reduceValue($item[1]);
 						if (!in_array($key[0], array('unit', 'string', 'autokey'))) {
-							throw new Exception("Typ $key[0] nemůže být použit jako index v poli.");
+							throw new CompileException("Typ $key[0] nemůže být použit jako index v poli.");
 						}
 						if ($key[0] == 'unit' && !$this->isInteger($key)) {
-							throw new Exception("Jen číslo bez jednotky může být indexem v poli.");
+							throw new CompileException("Jen číslo bez jednotky může být indexem v poli.");
 						}
 						switch ($key[0]) {
 							case 'unit':
@@ -887,12 +887,12 @@ class Analyzer extends Object {
 		foreach ($postfix as $symbol) {
 			if ($symbol[0] == 'unary' && array_key_exists($symbol[1], Compiler::$unaryOperators)) {
 				if ($stack->count() < 1) {
-					throw new Exception("Nedostatek operandů pro unární operátor '$symbol[1]'");
+					throw new CompileException("Nedostatek operandů pro unární operátor '$symbol[1]'");
 				}
 				$symbol = $this->evaluateUnaryOperation($symbol[1], $stack->pop());
 			} elseif ($symbol[0] == 'binary' && array_key_exists($symbol[1], Compiler::$binaryOperators)) {
 				if ($stack->count() < 2) {
-					throw new Exception("Nedostatek operandů pro binární operátor '$symbol[1]'");
+					throw new CompileException("Nedostatek operandů pro binární operátor '$symbol[1]'");
 				}
 				$value2 = $stack->pop();
 				$symbol = $this->evaluateBinaryOperation($symbol[1], $stack->pop(), $value2);
@@ -900,7 +900,7 @@ class Analyzer extends Object {
 			$stack->push($symbol);
 		}
 		if ($stack->count() <> 1) {
-			throw new Exception("Výsledkem výrazu má být pouze 1 hodnota");
+			throw new CompileException("Výsledkem výrazu má být pouze 1 hodnota");
 		}
 
 		return $stack->pop();
@@ -918,7 +918,7 @@ class Analyzer extends Object {
 			return $value1[2];
 		}
 		if (!$this->isInteger($value1) && !$this->isInteger($value2)) {
-			throw new Exception("Nelze provádět operaci s jednotkami '$value1[2]' a '$value2[2]'");
+			throw new CompileException("Nelze provádět operaci s jednotkami '$value1[2]' a '$value2[2]'");
 		}
 		return $value1[2] != '' ? $value1[2] : $value2[2];
 	}
@@ -935,7 +935,7 @@ class Analyzer extends Object {
 		} elseif ($value[0] == 'unit') {
 			return $value[1] != 0;
 		}
-		throw new Exception("Výsledkem podmínkového výrazu má být typ unit nebo bool");
+		throw new CompileException("Výsledkem podmínkového výrazu má být typ unit nebo bool");
 	}
 
 	/**
@@ -951,7 +951,7 @@ class Analyzer extends Object {
 		} elseif (in_array($operator, array('+', '-'))) {
 			return $this->evaluateBinaryOperation($operator, array('unit', 0, ''), $value);
 		}
-		throw new Exception("Nepovolená operace ($operator $value[0])");
+		throw new CompileException("Nepovolená operace ($operator $value[0])");
 	}
 
 	/**
@@ -1007,7 +1007,7 @@ class Analyzer extends Object {
 					break;
 				case '/':
 					if ($value2[1] == 0) {
-						throw new Exception("Dělení nulou");
+						throw new CompileException("Dělení nulou");
 					}
 					$answer[] = 'unit';
 					$answer[] = $value1[1] / $value2[1];
@@ -1053,12 +1053,12 @@ class Analyzer extends Object {
 					$answer[] = $value1[1] != $value2[1];
 					break;
 				default:
-					throw new Exception("Neznámý operátor");
+					throw new CompileException("Neznámý operátor");
 					break;
 			}
 			return $answer;
 		}
-		throw new Exception("Nepovolená operace ($value1[0] $operator $value2[0])");
+		throw new CompileException("Nepovolená operace ($value1[0] $operator $value2[0])");
 	}
 
 }
