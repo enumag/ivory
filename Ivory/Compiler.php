@@ -103,13 +103,6 @@ class Compiler extends Object {
 	public $outputDirectory;
 
 	/**
-	 * Soubor pro uložení cache
-	 *
-	 * @var string
-	 */
-	//public $cacheFile;
-
-	/**
 	 * Výchozí jednotka
 	 *
 	 * @var string
