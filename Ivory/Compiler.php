@@ -320,6 +320,13 @@ class Compiler extends Object {
 	}
 
 	/**
+	 * @return string[]
+	 */
+	public function getAllFiles() {
+		return $this->analyzer->getAllFiles();
+	}
+
+	/**
 	 * Zakóduje řetězec
 	 *
 	 * @param string

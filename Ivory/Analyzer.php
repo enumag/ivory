@@ -91,7 +91,6 @@ class Analyzer extends Object {
 	 * @param Ivory\Parser
 	 * @param Ivory\Generator
 	 * @param ArrayObject
-	 * @return void
 	 */
 	public function __construct(Parser $parser, Generator $generator, \ArrayObject $functions) {
 		$this->files = new Stack;
@@ -99,7 +98,13 @@ class Analyzer extends Object {
 		$this->parser = $parser;
 		$this->generator = $generator;
 		$this->functions = $functions;
+	}
 
+	/**
+	 * @return string[]
+	 */
+	public function getAllFiles() {
+		return $this->allFiles;
 	}
 
 	/**
