@@ -329,8 +329,7 @@ class Analyzer extends Object {
 							$this->saveVariable($property[1], $this->reduceValue($property[2]));
 						}
 					} elseif ($property[0] == Compiler::$prefixes['mixin']) {
-						//TODO: volat $this->reduceValue($property[2]) ?
-						$this->callMixin($property[1], $property[2], $selectors);
+						$this->callMixin($property[1], $this->reduceValue($property[2]), $selectors);
 					} elseif ($property[0] == Compiler::$prefixes['none'] ||
 							$property[0] == Compiler::$prefixes['important'] ||
 							$property[0] == Compiler::$prefixes['raw']) {
