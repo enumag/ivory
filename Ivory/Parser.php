@@ -164,11 +164,13 @@ class Parser extends Object {
 		while ($this->parseNext());
 
 		if ($this->getOffset() <> strlen($this->buffer)) {
-			$this->throwError("Chyba parsování", $this->getLine($this->maxOffset));
+			$pos = strpos($this->buffer, "\n", $this->maxOffset);
+			$error = $pos === FALSE ? substr($this->buffer, $this->maxOffset) : substr($this->buffer, $this->maxOffset, $pos - $this->maxOffset);
+			$this->throwError("Parse error, unexpected " . $error, $this->getLine($this->maxOffset));
 		}
 
 		if (!$this->getActualBlock() instanceof Main) {
-			$this->throwError("Neuzavřený blok", $this->getLine($this->maxOffset));
+			$this->throwError("Unclosed block", $this->getLine($this->maxOffset));
 		}
 
 		return $this->getActualBlock();
@@ -1224,7 +1226,7 @@ class Parser extends Object {
 			if ($match[0] == '"') {
 				$match = "'" . strtr(substr($match, 1, -1), array('\\"' => '"', '\'' => '\\\'', '\\' => '\\\\')) . "'";
 				if (!preg_match('/^' . static::RE_STRING . '$/D', $match)) {
-					throw new \Exception("Chyba při parsování double-quoted řetězce");
+					throw new \Exception("Double qouted string parse error");
 				}
 			}
 			$string = array('string', $match);
