@@ -193,26 +193,17 @@ class Parser extends Object {
 	 * @param NULL
 	 * @return bool
 	 */
-	protected function extendedSelectors(&$statement, &$prefixes, &$selectors) {
-		$return = FALSE;
-		if ($this->controlFlowStatement($statement)) {
-			$return = TRUE;
-		}
-		if ($this->selectors($prefixes)) {
-			$return = TRUE;
-			if ($this->char('>>')) {
-				if (!$this->selectors($selectors)) {
-					$selectors = array();
-				}
-			} else {
-				$selectors = $prefixes;
-				$prefixes = array();
+	protected function extendedSelectors(&$statement, &$exSelectors) {
+        $this->controlFlowStatement($statement);
+
+		$exSelectors = array();
+		while ($this->selectors($selectors)) {
+			$exSelectors[] = $selectors;
+			if (!$this->char('>>')) {
+				break;
 			}
-		} else {
-			$selectors = array();
-			$prefixes = array();
 		}
-		return $return;
+		return (bool) $statement || count($exSelectors) > 0;
 	}
 
 	/**
@@ -510,7 +501,7 @@ class Parser extends Object {
 	 */
 	protected function ruleBegin() {
 		if (!$this->getActualBlock() instanceof FontFace &&
-				$this->extendedSelectors($statement, $prefixes, $selectors) &&
+				$this->extendedSelectors($statement, $exSelectors) &&
 				$this->char('{')) {
 			if ($statement[0] == 'elseif' || $statement[0] == 'else') {
 				$statement['condition'] = $this->findCondition();
@@ -518,7 +509,7 @@ class Parser extends Object {
 					throw new \Exception("Podmínka nenalezena");
 				}
 			}
-			$block = new NestedRule($selectors, $prefixes, $statement);
+			$block = new NestedRule($exSelectors, $statement);
 			$this->getActualBlock()->properties[] = $block;
 			$this->stack->push($block);
 			return TRUE;

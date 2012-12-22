@@ -205,10 +205,56 @@ class Analyzer extends Object {
 	 *
 	 * @param array
 	 * @param array
-	 * @param int
+	 * @param bool
 	 * @return array
 	 */
-	protected function combineSelectors(array $parent, array $child, $group = 0) {
+	protected function combineParentSelectors($parent, $child, &$parentUsed) {
+		$group = array_shift($parent);
+		if (empty($parent) && empty($child)) {
+			return array();
+		}
+		if (empty($parent)) {
+			$parent[] = '';
+		}
+		if (empty($child)) {
+			$child[] = '';
+		}
+
+		$selectors = array();
+		$called = FALSE;
+		foreach ($parent as $key => $outer) {
+			foreach ($child as $inner) {
+				if (!$parentUsed) {
+					$inner = preg_replace_callback('/^((?:[^&[]|\\[[^]]++\\])*+)(&[0-9]*+)((?:[^&[]|\\[[^]]++\\])*+)$/', function ($matches) use (&$called, $group, $key, $outer) {
+	                    $called = TRUE;
+						if ($matches[2] === '&' || ($group != 0 && $key % $group + 1 == ltrim($matches[2], '&'))) {
+                            return $matches[1] . $outer . $matches[3];
+						} else {
+							return '';
+						}
+					}, $inner);
+				}
+                if ($inner !== '') {
+                	$selectors[] = $inner;
+				}
+			}
+		}
+
+		if (!$parentUsed) {
+			$parentUsed = $called;
+		}
+
+		return $selectors;
+	}
+
+	/**
+	 * Kombinuje selektory bloku
+	 *
+	 * @param array
+	 * @param array
+	 * @return array
+	 */
+	protected function combineSelectors(array $parent, array $child) {
 		if (empty($parent) && empty($child)) {
 			return array();
 		}
@@ -221,12 +267,6 @@ class Analyzer extends Object {
 		$selectors = array();
 		foreach ($parent as $key => $outer) {
 			foreach ($child as $inner) {
-				if (preg_match('/^&([0-9]++)(.*+)$/', $inner, $matches)) {
-					if ($group == 0 || $key % $group + 1 != $matches[1]) {
-						continue;
-					}
-					$inner = '&' . $matches[2];
-				}
 				$selectors[] = $outer .
 						($inner == '' ||
 								in_array(substr($inner, 0, 1), array('+', '>', '~', Compiler::SELF_SELECTOR)) ||
@@ -297,7 +337,7 @@ class Analyzer extends Object {
 	 * @param array
 	 * @return void
 	 */
-	protected function reduceBlock(Block $block, array $selectors = array(), array $variables = array()) {
+	protected function reduceBlock(Block $block, array $parentSelectors = array(), array $variables = array()) {
 		//inicializace nové vrstvy proměnných
 		if (!$block instanceof Main) {
 			$this->variables[] = array();
@@ -311,10 +351,26 @@ class Analyzer extends Object {
 		}
 
 		if ($block instanceof NestedRule) {
-			$group = array_shift($selectors);
-			$selectors = $this->combineSelectors($this->replaceVariables($block->prefixes), $selectors);
-			$selectors = $this->combineSelectors($selectors, $this->replaceVariables($block->selectors), $group);
-			array_unshift($selectors, count($block->selectors));
+            $parentUsed = FALSE;
+			$blockSelectorsGroup = $block->selectors;
+			$selectors = array_shift($blockSelectorsGroup) ?: [];
+            $newGroup = count($selectors);
+			$selectors = $this->combineParentSelectors($parentSelectors, $this->replaceVariables($selectors), $parentUsed);
+
+			foreach ($blockSelectorsGroup as $blockSelectors) {
+            	$blockSelectors = $this->combineParentSelectors($parentSelectors, $this->replaceVariables($blockSelectors), $parentUsed);
+                $newGroup = count($blockSelectors);
+				$selectors = $this->combineSelectors($selectors, $blockSelectors);
+			}
+
+			if (!$parentUsed) {
+            	array_shift($parentSelectors);
+				$selectors = $this->combineSelectors($parentSelectors, $selectors);
+			}
+
+			array_unshift($selectors, $newGroup);
+		} else {
+			$selectors = $parentSelectors;
 		}
 
 		$reduced = $this->getReduced($block, $selectors);

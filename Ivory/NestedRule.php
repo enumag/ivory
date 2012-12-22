@@ -16,11 +16,6 @@ class NestedRule extends Rule {
 	/**
 	 * @var array
 	 */
-	public $prefixes;
-
-	/**
-	 * @var array
-	 */
 	public $statement;
 
 	/**
@@ -29,9 +24,8 @@ class NestedRule extends Rule {
 	 * @param array
 	 * @return void
 	 */
-	public function __construct(array $selectors = array(''), array $prefixes = array(''), array $statement = NULL) {
+	public function __construct(array $selectors = array(), array $statement = NULL) {
 		parent::__construct($selectors);
-		$this->prefixes = $prefixes;
 		$this->statement = $statement;
 	}
 

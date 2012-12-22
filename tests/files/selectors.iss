@@ -10,7 +10,7 @@ div#id.class[attr="value"] {
 	}
 	& {
 		display: block;
-		.no-cssgradients > >> {
+		.no-cssgradients > & {
 			background-color: red;
 		}
 	}
