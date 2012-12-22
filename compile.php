@@ -4,13 +4,13 @@ error_reporting(E_ALL|E_STRICT);
 ini_set('display_errors', TRUE);
 
 function __autoload($class) {
-    $namespace = 'Ivory\\StyleSheets\\';
+    $namespace = 'Ivory\\';
     if (substr($class, 0, strlen($namespace)) == $namespace) {
-        require_once 'IvoryStyleSheets/' . substr($class, strlen($namespace)) . '.php';
+        require_once 'Ivory/' . substr($class, strlen($namespace)) . '.php';
     }
 }
 
-$ivory = new \Ivory\StyleSheets\Compiler();
+$ivory = new \Ivory\Compiler();
 $ivory->setDefaultUnit('px');
 try {
     if (isset($_POST['iss'])) {
@@ -23,6 +23,6 @@ try {
         echo($output);
     else
         var_dump($output);
-} catch(\Ivory\StyleSheets\Exception $e) {
+} catch(\Ivory\CompileException $e) {
     echo $e->getMessage() . ' (' . ($e->getFile() ? $e->getFile() . ':' : 'řádek ') . $e->getLine() . ')';
 }
