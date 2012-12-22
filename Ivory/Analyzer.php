@@ -201,7 +201,7 @@ class Analyzer extends Object {
 	}
 
 	/**
-	 * Kominuje selektory rodičovského bloku s aktuálním
+	 * Kombinuje selektory rodičovského bloku s aktuálním
 	 *
 	 * @param array
 	 * @param array

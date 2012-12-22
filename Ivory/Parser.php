@@ -401,20 +401,20 @@ class Parser extends Object {
 	protected function selector(&$selector) {
 		/**
 		 * Vysvětlení regulárního výrazu:
-		 * (?:								  #začátek subvýrazu
-		 *	 >?							   #na začátku může být jeden znak > (musí být tady, aby se nenamatchovala sekvence >>)
-		 *	 (?:							  #začátek vnitřního subvýrazu
-		 *		 [^][@$\/\\%<>,;{}\'"]++	  #libovolné opakování většiny znaků (posessed quantifier pro zrychlení)
-		 *	 |								#nebo
-		 *		 \\[[^]]++\\]				 #atributvý selektor [attr=value] (posessed quantifier pro zrychlení)
-		 *	 |								#nebo
-		 *		 <\\$-?[\w]++(?:[\w-]*[\w])?> #proměnná, např. <$var>
-		 *	 )								#konec vnitřního subvýrazu
-		 * )+								   #konec subvýrazu, alespoň 1 opakování
-		 * (?:								  #začátek velmi obskurní konstrukce :-P
-		 *	 >*+							  #na konci selektoru se může vyskytnout znak >, je-li jich více, sežere všechny (posessed quantifier je nutný!!)
-		 *	 (?<!>>)						  #záporné tvrzení o předcházejícím, pokud znaků > bylo více, nenamatchuje se ani jeden
-		 * )?								   #na konci selektoru samozřejmě žádný znak > být nemusí, takže celá konstrukce je nepovinná
+		 * (?:									#začátek subvýrazu
+		 *	 >?									#na začátku může být jeden znak > (musí být tady, aby se nenamatchovala sekvence >>)
+		 *	 (?:								#začátek vnitřního subvýrazu
+		 *		 [^][@$\/\\%<>,;{}\'"]++		#libovolné opakování většiny znaků (posessive quantifier pro zrychlení)
+		 *	 |									#nebo
+		 *		 \\[[^]]++\\]					#atributvý selektor [attr=value] (posessive quantifier pro zrychlení)
+		 *	 |									#nebo
+		 *		 <\\$-?[\w]++(?:[\w-]*[\w])?>	#proměnná, např. <$var>
+		 *	 )									#konec vnitřního subvýrazu
+		 * )+									#konec subvýrazu, alespoň 1 opakování
+		 * (?:									#začátek velmi obskurní konstrukce :-P
+		 *	 >*+								#na konci selektoru se může vyskytnout znak >, je-li jich více, sežere všechny (posessive quantifier je nutný!!)
+		 *	 (?<!>>)							#záporné tvrzení o předcházejícím, pokud znaků > bylo více, nenamatchuje se ani jeden
+		 * )?									#na konci selektoru samozřejmě žádný znak > být nemusí, takže celá konstrukce je nepovinná
 		 */
 		$line = $this->getLine();
 		if ($this->match('(?:>?(?:[^][@$\/\\%<>,;{}\'"]++|\\[[^]]++\\]|<\\$-?[\w]++(?:[\w-]*[\w])?>))+(?:>*+(?<!>>))?', $matches)) {
