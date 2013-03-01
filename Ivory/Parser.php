@@ -439,8 +439,9 @@ class Parser extends Object {
 	protected function char($string, $whitespace = TRUE) {
 		if (substr($this->buffer, $this->getOffset(), strlen($string)) == $string) {
 			$this->moveOffset(strlen($string));
-			if ($whitespace)
+			if ($whitespace) {
 				$this->whitespace();
+			}
 			return TRUE;
 		}
 		return FALSE;
