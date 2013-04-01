@@ -50,7 +50,7 @@ class Compiler extends Object {
 	);
 
 	/**
-	 * Unární operátory a vynucení mezery před alafabetickými znaky
+	 * Unární operátory a vynucení mezery před alfabetickými znaky
 	 * (kvůli css -moz-calc apod.)
 	 *
 	 * @var array
