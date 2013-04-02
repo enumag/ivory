@@ -1,7 +1,9 @@
 strong.class1,
 strong.class2,
+strong a:hover,
 em.class1,
-em.class2 {
+em.class2,
+em a:hover {
 font-size: 10px;
 }
 strong.class1,
