@@ -226,16 +226,16 @@ class Analyzer extends Object {
 			foreach ($child as $inner) {
 				if (!$parentUsed) {
 					$inner = preg_replace_callback('/^((?:[^&[]|\\[[^]]++\\])*+)(&[0-9]*+)((?:[^&[]|\\[[^]]++\\])*+)$/', function ($matches) use (&$called, $group, $key, $outer) {
-	                    $called = TRUE;
+						$called = TRUE;
 						if ($matches[2] === '&' || ($group != 0 && $key % $group + 1 == ltrim($matches[2], '&'))) {
-                            return $matches[1] . $outer . $matches[3];
+							return $matches[1] . $outer . $matches[3];
 						} else {
 							return '';
 						}
 					}, $inner);
 				}
-                if ($inner !== '') {
-                	$selectors[] = $inner;
+				if ($inner !== '') {
+					$selectors[] = $inner;
 				}
 			}
 		}
@@ -351,20 +351,20 @@ class Analyzer extends Object {
 		}
 
 		if ($block instanceof NestedRule) {
-            $parentUsed = FALSE;
+			$parentUsed = FALSE;
 			$blockSelectorsGroup = $block->selectors;
-			$selectors = array_shift($blockSelectorsGroup) ?: [];
-            $newGroup = count($selectors);
+			$selectors = array_shift($blockSelectorsGroup) ?: array();
+			$newGroup = count($selectors);
 			$selectors = $this->combineParentSelectors($parentSelectors, $this->replaceVariables($selectors), $parentUsed);
 
 			foreach ($blockSelectorsGroup as $blockSelectors) {
-            	$blockSelectors = $this->combineParentSelectors($parentSelectors, $this->replaceVariables($blockSelectors), $parentUsed);
-                $newGroup = count($blockSelectors);
+				$blockSelectors = $this->combineParentSelectors($parentSelectors, $this->replaceVariables($blockSelectors), $parentUsed);
+				$newGroup = count($blockSelectors);
 				$selectors = $this->combineSelectors($selectors, $blockSelectors);
 			}
 
 			if (!$parentUsed) {
-            	array_shift($parentSelectors);
+				array_shift($parentSelectors);
 				$selectors = $this->combineSelectors($parentSelectors, $selectors);
 			}
 
