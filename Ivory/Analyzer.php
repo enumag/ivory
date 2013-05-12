@@ -871,7 +871,7 @@ class Analyzer extends Object {
 					continue;
 				}
 				$top = $stack->top();
-				while ($top != '(' && $stack->count() > 0 && Compiler::$binaryOperators[$symbol[1]] <= Compiler::$binaryOperators[$top[1]]) {
+				while ($top != '(' && $stack->count() > 0 && $top[0] == 'binary' && Compiler::$binaryOperators[$symbol[1]] <= Compiler::$binaryOperators[$top[1]]) {
 					$postfix[] = $stack->pop();
 					$top = $stack->top();
 				}
