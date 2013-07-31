@@ -1062,12 +1062,16 @@ class Parser extends Object {
 	 */
 	protected function color(&$color) {
 		$color = array('color');
-		if ($this->match('#(?:(?:(?:[0-9a-f]{3})?[0-9a-f]{3}-[0-9]{2})|(?:[0-9a-f]{8})|(?:[0-9a-f]{6})|(?:[0-9a-f]{2,4}))', $matches)) {
+		if ($this->match('#(?:(?:(?:[0-9a-f]{3})?[0-9a-f]{2,3}-[0-9]{2})|(?:[0-9a-f]{8})|(?:[0-9a-f]{6})|(?:[0-9a-f]{2,4}))', $matches)) {
 			$code = substr($matches[0], 1);
 			$length = strlen($code);
 			if ($length == 2) {
-				$code = $code . $code . $code;
+				$code = str_repeat($code, 3);
 				$length = 6;
+			}
+			if ($length == 5 && strpos($code, '-')) {
+				$code = str_repeat(substr($code, 0, 2), 3) . '-' . substr($code, 3, 2);
+				$length = 8;
 			}
 			if ($length == 6 && !strpos($code, '-') || $length == 8 || $length == 9) {
 				foreach (str_split(substr($code, 0, 6), 2) as $key => $value) {
