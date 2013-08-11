@@ -992,7 +992,7 @@ class Analyzer extends Object {
 			}
 			return $answer;
 		} elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'raw') {
-			return array('string', '\'' . substr($value2[1], 1, -1) . substr(Compiler::stringEncode($value2[1]), 1));
+			return array('string', '\'' . substr($value1[1], 1, -1) . substr(Compiler::stringEncode($value2[1]), 1));
 		} elseif ($operator == '.' && $value1[0] == 'raw' && $value2[0] == 'string') {
 			return array('string', substr(Compiler::stringEncode($value1[1]), 0, -1) . substr($value2[1], 1, -1) . '\'');
 		} elseif ($operator == '.' && $value1[0] == 'string' && $value2[0] == 'unit') {
