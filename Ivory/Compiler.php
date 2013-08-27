@@ -110,13 +110,6 @@ class Compiler extends Object {
 	protected $defaultUnit;
 
 	/**
-	 * Složky pro hledání souborů
-	 *
-	 * @var array
-	 */
-	protected $includePaths;
-
-	/**
 	 * Globální proměnné
 	 *
 	 * @var array
@@ -158,7 +151,6 @@ class Compiler extends Object {
 	 */
 	public function __construct() {
 		$this->defaultUnit = '';
-		$this->includePaths = array();
 		$this->variables = array();
 		$this->functions = new \ArrayObject();
 		$this->prepareFunctions();
@@ -199,19 +191,6 @@ class Compiler extends Object {
 			throw new \Exception("Chybná výchozí jednotka '$unit'");
 		}
 		$this->defaultUnit = $unit;
-	}
-
-	/**
-	 * Přidá cestu
-	 *
-	 * @param string
-	 * @return void
-	 */
-	public function addIncludePath($path) {
-		$path = realpath($path);
-		if (!in_array($path, $this->includePaths)) {
-			$this->includePaths[] = $path;
-		}
 	}
 
 	/**
@@ -270,9 +249,7 @@ class Compiler extends Object {
 	 */
 	public function compileFile($file) {
 		$pathinfo = pathinfo($file);
-		$this->addIncludePath($pathinfo['dirname']);
-		$file = self::stringEncode($pathinfo['basename']);
-		$output = $this->compileString('@include ' . $file . ';');
+		$output = $this->compileString('@include ' . self::stringEncode(realpath($file)) . ';');
 		if ($this->outputDirectory) {
 			$outputFile = $this->outputDirectory . DIRECTORY_SEPARATOR . $pathinfo['filename'] . '.css';
 			if (@file_put_contents($outputFile, $output) === FALSE) {
@@ -305,7 +282,7 @@ class Compiler extends Object {
 		setlocale(LC_NUMERIC, "C");
 
 		$tree = $this->parser->parse($input);
-		$reduced = $this->analyzer->analyze($tree, $this->includePaths, $this->variables);
+		$reduced = $this->analyzer->analyze($tree, $this->variables);
 		$output = $this->generator->generate($reduced, $this->defaultUnit);
 		
 		setlocale(LC_NUMERIC, $locale);

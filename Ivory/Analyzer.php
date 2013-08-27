@@ -58,13 +58,6 @@ class Analyzer extends Object {
 	protected $inMedia;
 
 	/**
-	 * Složky pro hledání souborů
-	 *
-	 * @var array
-	 */
-	protected $includePaths;
-
-	/**
 	 * Parser
 	 *
 	 * @var Ivory\Parser
@@ -113,9 +106,7 @@ class Analyzer extends Object {
 	 * @param Main
 	 * @return array
 	 */
-	public function &analyze($tree, array $includePaths, array $variables) {
-		$this->includePaths = $includePaths;
-
+	public function &analyze(Main $tree, array $variables) {
 		//prázdný zásobník
 		$this->files->clear();
 		$this->allFiles = array();
@@ -555,36 +546,36 @@ class Analyzer extends Object {
 			throw new CompileException("Název vkládaného souboru musí být řetězec");
 		}
 		$file = Compiler::stringDecode($value[1]);
-		foreach ($this->includePaths as $path) {
-			$path .= DIRECTORY_SEPARATOR . $file;
-			$extension = pathinfo($file, PATHINFO_EXTENSION);
-			if (!is_file($path) || !is_readable($path)) {
-				continue;
-			} elseif ($extension == 'iss') {
-				$this->addFile($path);
-				try {
-					$tree = $this->parser->parse(file_get_contents($this->getFile()));
-					if ($include[3] !== NULL) {
-						$block = new Media($include[3], $include[4]);
-						$block->properties = $tree->properties;
-						$this->reduceBlock($block);
-					} else {
-						$this->reduceBlock($tree);
-					}
-				} catch (CompileException $e) {
-					throw $e->setFile($this->getFile());
+		$path = ($this->files->isEmpty() ? '' : dirname($this->files->top()) . DIRECTORY_SEPARATOR) . $file; 
+		$extension = pathinfo($file, PATHINFO_EXTENSION);
+
+		if (!is_file($path) || !is_readable($path)) {
+			throw new CompileException("Soubor '$path' neexistuje nebo jej nelze přečíst");
+		} elseif ($extension == 'iss') {
+			$this->addFile($path);
+			try {
+				$tree = $this->parser->parse(file_get_contents($this->getFile()));
+				if ($include[3] !== NULL) {
+					$block = new Media($include[3], $include[4]);
+					$block->properties = $tree->properties;
+					$this->reduceBlock($block);
+				} else {
+					$this->reduceBlock($tree);
 				}
-				$this->removeFile($path);
-				return;
-			} elseif ($extension == 'css') {
-				$this->addFile($path);
-				$context = & $this->getReducedContext();
-				$context[] = file_get_contents($path);
-				$this->removeFile($path);
-				return;
+			} catch (CompileException $e) {
+				throw $e->setFile($this->getFile());
 			}
+			$this->removeFile($path);
+			return;
+		} elseif ($extension == 'css') {
+			$this->addFile($path);
+			$context = & $this->getReducedContext();
+			$context[] = file_get_contents($path);
+			$this->removeFile($path);
+			return;
 		}
-		throw new CompileException("Soubor '$file' se nepodařilo vložit");
+		
+		throw new CompileException("Soubor '$path' nemá koncovku .css ani .iss");
 	}
 
 	/**
