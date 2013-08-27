@@ -137,7 +137,7 @@ class Analyzer extends Object {
 	 * @return string
 	 */
 	protected function getFile() {
-		return /* TODO $this->files->isEmpty() ? 'unknown' : */$this->files->top();
+		return $this->files->isEmpty() ? 'unknown' : $this->files->top();
 	}
 
 	/**
