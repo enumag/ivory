@@ -856,6 +856,10 @@ class Analyzer extends Object {
 					}
 					$postfix[] = $top;
 				}
+				$top = $stack->top();
+				if ($top[0] == 'unary' && array_key_exists($top[1], Compiler::$unaryOperators)) {
+					$postfix[] = $stack->pop();
+				}
 			} elseif ($symbol[0] == 'binary' && array_key_exists($symbol[1], Compiler::$binaryOperators)) {
 				if ($stack->count() == 0) {
 					$stack->push($symbol);
