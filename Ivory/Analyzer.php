@@ -875,6 +875,10 @@ class Analyzer extends Object {
 				$stack->push($symbol);
 			} else {
 				$postfix[] = $this->reduceValue($symbol);
+				$top = $stack->top();
+				if ($top[0] == 'unary' && array_key_exists($top[1], Compiler::$unaryOperators)) {
+					$postfix[] = $stack->pop();
+				}
 			}
 		}
 		while ($stack->count() > 0) {
